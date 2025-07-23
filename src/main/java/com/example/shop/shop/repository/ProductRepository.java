@@ -14,7 +14,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // İsimde geçen ile arama
     Page<Product> findByNameContainingIgnoreCase(String name, Pageable pageable);
 
-    // Fiyata göre filtre
+    // Fiyata göre filtreleme
     Page<Product> findByPriceBetween(Double min, Double max, Pageable pageable);
 }
 
