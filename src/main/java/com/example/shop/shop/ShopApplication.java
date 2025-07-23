@@ -12,7 +12,6 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Set;
 
 @SpringBootApplication
-@EnableFeignClients
 public class ShopApplication {
     public static void main(String[] args) {
         SpringApplication.run(ShopApplication.class, args);
