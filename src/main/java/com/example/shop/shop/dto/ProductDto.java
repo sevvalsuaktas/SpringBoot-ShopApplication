@@ -10,4 +10,5 @@ public class ProductDto {
     private Double price;
     private String imageUrl;
     private Long categoryId;
+    private Boolean inStock;
 }

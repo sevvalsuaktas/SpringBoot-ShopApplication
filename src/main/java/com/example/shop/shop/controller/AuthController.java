@@ -8,6 +8,8 @@ import com.example.shop.shop.model.User;
 import com.example.shop.shop.repository.UserRepository;
 import com.example.shop.shop.security.JwtTokenProvider;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;

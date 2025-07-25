@@ -1,5 +1,7 @@
 package com.example.shop.shop.service.impl;
 
+import com.example.shop.shop.client.InventoryClient;
+import com.example.shop.shop.dto.InventoryDto;
 import com.example.shop.shop.dto.ProductDto;
 import com.example.shop.shop.model.Category;
 import com.example.shop.shop.model.Product;
@@ -15,6 +17,7 @@ import org.springframework.transaction.annotation.Transactional;
 public class ProductServiceImpl implements ProductService {
     private final ProductRepository repo;
     private final CategoryRepository categoryRepo;
+    private final InventoryClient inventoryClient;
 
     private ProductDto toDto(Product e) {
         return ProductDto.builder()
@@ -41,15 +44,21 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public Page<ProductDto> getAll(Pageable page) {
-        return repo.findAll(page).map(this::toDto);
+    public ProductDto getById(Long id) {
+        Product e = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + id));
+        ProductDto dto = toDto(e);
+
+        // Feign ile inventory servisten stok al
+        InventoryDto inv = inventoryClient.getStock(id);
+        dto.setInStock(inv.getAvailable() > 0);
+
+        return dto;
     }
 
     @Override
-    public ProductDto getById(Long id) {
-        return repo.findById(id)
-                .map(this::toDto)
-                .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + id));
+    public Page<ProductDto> getAll(Pageable page) {
+        return repo.findAll(page).map(this::toDto);
     }
 
     @Override

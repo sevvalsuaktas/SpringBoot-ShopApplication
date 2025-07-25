@@ -25,7 +25,8 @@ public class AdminServiceImpl implements AdminService {
                 .flatMap(o -> o.getItems().stream())
                 .mapToDouble(i -> i.getPriceAtPurchase() * i.getQuantity())
                 .sum();
-        return AdminStatsDto.builder()
+
+        return AdminStatsDto.builder() // bu verileri adminstatsdto içinde paketleip döner
                 .userCount(userCount)
                 .productCount(productCount)
                 .orderCount(orderCount)

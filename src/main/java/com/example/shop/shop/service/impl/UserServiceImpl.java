@@ -16,7 +16,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public List<UserDto> findAllUsers() {
-        return userRepo.findAll().stream()
+        return userRepo.findAll().stream()// repo dan tüm User entity lerini alır
                 .map(u -> UserDto.builder()
                         .id(u.getId())
                         .username(u.getUsername())

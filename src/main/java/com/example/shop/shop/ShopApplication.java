@@ -1,5 +1,6 @@
 package com.example.shop.shop;
 
+import org.springframework.cloud.openfeign.EnableFeignClients;
 import com.example.shop.shop.model.Role;
 import com.example.shop.shop.model.User;
 import com.example.shop.shop.repository.UserRepository;
@@ -12,6 +13,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Set;
 
 @SpringBootApplication
+@EnableFeignClients // feign client arabirimlerini tarar
 public class ShopApplication {
     public static void main(String[] args) {
         SpringApplication.run(ShopApplication.class, args);
