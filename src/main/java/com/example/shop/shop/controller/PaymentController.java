@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.*;
 public class PaymentController {
     private final PaymentService paymentService;
 
-    @PostMapping
+    @PostMapping // ödeme isteği geldiğinde bu metot tetiklenir
     public ResponseEntity<PaymentResponseDto> pay(@RequestBody PaymentRequestDto request) {
         PaymentResponseDto response = paymentService.processPayment(request);
-        return ResponseEntity.ok(response);
+        return ResponseEntity.ok(response); // ödeme bilgilerini işler ve response olarak 200 OK döner
     }
 }

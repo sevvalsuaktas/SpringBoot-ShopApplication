@@ -17,59 +17,47 @@ public class ProductController {
 
     private final ProductService productService;
 
-    /**
-     * Tüm ürünler
-     * Örneğin: GET /api/v1/products?page=0&size=10
-     */
-    @GetMapping
+    @GetMapping // tüm ürünleri pageable listeleyen liste döner
     public ResponseEntity<Page<ProductDto>> getAll(
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(productService.getAll(pageable));
     }
 
-    /**
-     * İsim araması
-     * Örneğin: GET /api/v1/products/search?name=phone&page=0&size=5
-     */
     @GetMapping("/search")
-    public ResponseEntity<Page<ProductDto>> searchByName(
+    public ResponseEntity<Page<ProductDto>> searchByName( // isme göre arama yapıyor
             @RequestParam String name,
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(productService.searchByName(name, pageable));
     }
 
-    /**
-     * Kategoriye göre filtre
-     * Örneğin: GET /api/v1/products/filter?categoryId=3&page=0&size=5
-     */
     @GetMapping("/filter")
-    public ResponseEntity<Page<ProductDto>> filterByCategory(
+    public ResponseEntity<Page<ProductDto>> filterByCategory( // kategorilere göre arama yapıyor
             @RequestParam Long categoryId,
             @PageableDefault(size = 20) Pageable pageable) {
         return ResponseEntity.ok(productService.filterByCategory(categoryId, pageable));
     }
 
-    @GetMapping("/{id}")
+    @GetMapping("/{id}") // id si girilen product ı getiriyor
     public ResponseEntity<ProductDto> getById(@PathVariable Long id) {
         return ResponseEntity.ok(productService.getById(id));
     }
 
-    @PostMapping
+    @PostMapping // yeni bir ürün ekleme endpointi
     public ResponseEntity<ProductDto> create(@Validated @RequestBody ProductDto dto) {
         ProductDto created = productService.create(dto);
         return ResponseEntity
                 .status(201)
-                .body(created);
+                .body(created); // response olarak 201 created dönüyor
     }
 
-    @PutMapping("/{id}")
+    @PutMapping("/{id}") // id si girilen ürünü güncellemeye yarayan endpoint
     public ResponseEntity<ProductDto> update(
             @PathVariable Long id,
             @Validated @RequestBody ProductDto dto) {
         return ResponseEntity.ok(productService.update(id, dto));
     }
 
-    @DeleteMapping("/{id}")
+    @DeleteMapping("/{id}") // id si girilen ürünü silen endpoint
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         productService.delete(id);
         return ResponseEntity.noContent().build();

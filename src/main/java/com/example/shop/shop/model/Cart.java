@@ -6,23 +6,28 @@ import java.util.ArrayList;
 import java.util.List;
 
 @Entity
-@Table(name = "carts")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Table(name = "carts") // database de carts isimli tablo oluşturuyor
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Cart {
-    @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id // bu alanın tablonun primary key i olduğunu gösterir
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     private Long customerId;
 
-    @OneToMany(
+    @OneToMany( // bir cart nesnesi birden fazla cartItem içerebilir
             mappedBy = "cart",
             cascade = CascadeType.ALL,
-            orphanRemoval = true
+            orphanRemoval = true // bir cartItem sepetten çıkarıldığında veritabından da silinir
     )
+
     @Builder.Default
     private List<CartItem> items = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
-    private CartStatus status;
+    private CartStatus status; // sepetin durumunu tutar
 }
 

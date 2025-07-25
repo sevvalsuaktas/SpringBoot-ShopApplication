@@ -16,37 +16,25 @@ public class OrderController {
 
     private final OrderService orderService;
 
-    /**
-     * Aktif sepetten sipariş oluşturur
-     */
-    @PostMapping("/from-cart/{customerId}")
+    @PostMapping("/from-cart/{customerId}") // girilen müşteriye göre active sepetten order oluşturur
     public ResponseEntity<OrderDto> createOrder(@PathVariable Long customerId) {
         OrderDto created = orderService.createFromCart(customerId);
-        return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        return ResponseEntity.status(HttpStatus.CREATED).body(created); // response olarak created döner
     }
 
-    /**
-     * ID ile sipariş getirir
-     */
-    @GetMapping("/{orderId}")
+    @GetMapping("/{orderId}") // istenen id ile sepeti getirir
     public ResponseEntity<OrderDto> getOrder(@PathVariable Long orderId) {
         OrderDto dto = orderService.getById(orderId);
         return ResponseEntity.ok(dto);
     }
 
-    /**
-     * Müşterinin tüm siparişlerini listeler
-     */
-    @GetMapping("/customer/{customerId}")
+    @GetMapping("/customer/{customerId}") // müşterinin sepetlerini listeler
     public ResponseEntity<List<OrderDto>> getByCustomer(@PathVariable Long customerId) {
         List<OrderDto> orders = orderService.getByCustomer(customerId);
         return ResponseEntity.ok(orders);
     }
 
-    /**
-     * Sipariş durumu günceller
-     */
-    @PatchMapping("/{orderId}/status")
+    @PatchMapping("/{orderId}/status") // sipariş duurmunu günceller NEW, CANCELLED, COMPLETED, PROCESSING
     public ResponseEntity<OrderDto> updateStatus(
             @PathVariable Long orderId,
             @RequestParam String status) {

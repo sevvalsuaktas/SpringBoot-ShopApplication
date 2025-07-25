@@ -20,7 +20,6 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Transactional
 public class CartServiceImpl implements CartService {
-
     private final CartRepository cartRepo;
     private final CartItemRepository itemRepo;
     private final ProductRepository productRepo;
@@ -46,8 +45,8 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartDto getActiveCart(Long customerId) {
-        Cart cart = cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE)
-                .orElseGet(() -> cartRepo.save(
+        Cart cart = cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE) // müşteriye ait active sepet var mı kontrol eder
+                .orElseGet(() -> cartRepo.save( // yoksa oluştur
                         Cart.builder()
                                 .customerId(customerId)
                                 .status(CartStatus.ACTIVE)
@@ -58,9 +57,9 @@ public class CartServiceImpl implements CartService {
 
     @Override
     public CartItemDto addItem(Long customerId, CartItemDto dto) {
-        Cart cart = cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE)
+        Cart cart = cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE) // müşterinin aktif sepeti yoksa hata fırlatır
                 .orElseThrow(() -> new RuntimeException("Aktif sepet bulunamadı"));
-        Product prod = productRepo.findById(dto.getProductId())
+        Product prod = productRepo.findById(dto.getProductId()) // verilen product id ye uygun product yoksa hata fırlatır
                 .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + dto.getProductId()));
 
         // Eğer aynı üründen zaten eklenmişse, miktarı güncelle

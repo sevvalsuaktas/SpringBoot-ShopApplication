@@ -5,12 +5,16 @@ import lombok.*;
 
 @Entity
 @Table(name = "products")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Product {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false)
+    @Column(nullable = false) // sütun boş bırakılamaz
     private String name;
 
     private String description;

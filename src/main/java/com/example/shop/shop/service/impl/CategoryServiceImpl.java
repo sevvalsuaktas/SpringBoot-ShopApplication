@@ -45,7 +45,7 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
-    public CategoryDto create(CategoryDto dto) {
+    public CategoryDto create(CategoryDto dto) { // kategori yoksa oluştur
         Category saved = repo.save(toEntity(dto));
         return toDto(saved);
     }

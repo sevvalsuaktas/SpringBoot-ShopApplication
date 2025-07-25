@@ -5,7 +5,11 @@ import org.springframework.http.HttpStatus;
 
 import java.time.LocalDateTime;
 
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class ApiError {
     private HttpStatus status; // http durum kodu
     private String message; // döndürülen mesaj

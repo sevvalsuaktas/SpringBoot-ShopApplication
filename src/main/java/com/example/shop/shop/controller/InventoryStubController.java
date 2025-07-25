@@ -8,9 +8,9 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/inventory")
 public class InventoryStubController {
 
-    @GetMapping("/{productId}")
+    @GetMapping("/{productId}") // product id si girilen ürünün stok miktarını almak için endpoint
     public ResponseEntity<InventoryDto> getStock(@PathVariable Long productId) {
-        // Tüm ürünler için demo amaçlı 100 adet stok dönüyoruz
+        // Tüm ürünler için demo amaçlı 100 adet stok girdim
         InventoryDto dto = InventoryDto.builder()
                 .productId(productId)
                 .available(100)

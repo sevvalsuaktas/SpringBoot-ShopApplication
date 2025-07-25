@@ -17,13 +17,13 @@ public class AdminController {
     private final AdminService adminService;
 
     @GetMapping("/users")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')") // sadece admin olan kullanıcılar erişir
     public List<UserDto> listUsers() { // tüm kullanıcıları DTO listesi olarak döner.
         return userService.findAllUsers();
     }
 
     @GetMapping("/stats")
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')") // sadece admin olan kullanıcılar erişir
     public AdminStatsDto stats() { //kullanıcı sayısı, ürün sayısı, sipariş sayısı, toplam gelir gibi verileri döner.
         return adminService.getStats();
     }

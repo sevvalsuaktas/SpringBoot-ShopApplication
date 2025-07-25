@@ -9,17 +9,15 @@ import com.example.shop.shop.repository.UserRepository;
 import com.example.shop.shop.security.JwtTokenProvider;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.*;
 
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/v1/auth")
+@RequestMapping("/api/v1/auth") // authentication için endpoint
 public class AuthController {
     private final AuthenticationManager authManager;
     private final JwtTokenProvider tokenProvider;
@@ -36,27 +34,27 @@ public class AuthController {
         this.encoder = encoder;
     }
 
-    @PostMapping("/register")
+    @PostMapping("/register") // yeni kullanıcı için register endpointi
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
-        if (userRepo.findByUsername(req.getUsername()).isPresent()) {
+        if (userRepo.findByUsername(req.getUsername()).isPresent()) { // eğer aynı isimli bir kullanıcı varsa hata fırlatıyor
             return ResponseEntity.badRequest().body("Username taken");
         }
-        User user = User.builder()
+        User user = User.builder() // eğer yoksa yeni kullanıcıyı oluşturuyor ve user rolü atıyor
                 .username(req.getUsername())
                 .password(encoder.encode(req.getPassword()))
                 .roles(Set.of(Role.ROLE_USER))
                 .build();
-        userRepo.save(user);
-        String token = tokenProvider.generateToken(user.getUsername());
+        userRepo.save(user); // veri tabanına bilgileri kaydediyor
+        String token = tokenProvider.generateToken(user.getUsername()); // ve bir token üretiyor endpoint requestleri için response alırken bu tokenı kullanıyoruz
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
-    @PostMapping("/login")
+    @PostMapping("/login") // var olan kullanıcı için login endpointi
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
         );
-        String token = tokenProvider.generateToken(auth.getName());
+        String token = tokenProvider.generateToken(auth.getName()); // girilen bilgilerden sonra yine aynı amaçla bir token üretiyor
         return ResponseEntity.ok(new AuthResponse(token));
     }
 }

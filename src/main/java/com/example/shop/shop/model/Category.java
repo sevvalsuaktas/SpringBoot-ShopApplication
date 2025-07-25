@@ -5,12 +5,16 @@ import lombok.*;
 
 @Entity
 @Table(name = "categories")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Category {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true)
+    @Column(nullable = false, unique = true) // bu sütun boş bırakılamaz ve her satır unique olmalı
     private String name;
 
     private String description;

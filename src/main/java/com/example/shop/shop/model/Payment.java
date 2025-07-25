@@ -6,7 +6,11 @@ import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "payments")
-@Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class Payment {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -14,8 +18,8 @@ public class Payment {
 
     private Long orderId;
     private Double amount;
-    private String method;    // e.g. "CREDIT_CARD", "PAYPAL"
-    private String status;    // "SUCCESS", "FAILED"
+    private String method; // ödeme şekli
+    private String status;    //"SUCCESS", "FAILED"
 
     private LocalDateTime createdAt;
 }

@@ -12,12 +12,12 @@ import java.util.stream.Collectors;
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
-    private final UserRepository userRepo;
-    private final ProductRepository productRepo;
-    private final OrderRepository orderRepo;
+    private final UserRepository userRepo; // kullanıcı tablosu üzerine CRUD işlemleri ve sayma işlemleri yapıcak UserRepository
+    private final ProductRepository productRepo; // ürün tablosu için
+    private final OrderRepository orderRepo; // sipariş tablosu için
 
     @Override
-    public AdminStatsDto getStats() {
+    public AdminStatsDto getStats() { // istatistiklere erişebilmek için bir metot (admin-only)
         long userCount = userRepo.count();
         long productCount = productRepo.count();
         long orderCount = orderRepo.count();
