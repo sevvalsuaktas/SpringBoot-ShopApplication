@@ -20,8 +20,7 @@ public class ShopApplication {
     }
 
     @Bean
-    public CommandLineRunner seedAdmin(UserRepository userRepo,
-                                       PasswordEncoder encoder) {
+    public CommandLineRunner seedAdmin(UserRepository userRepo, PasswordEncoder encoder) {
         return args -> {
             String adminUsername = "admin";
             // Eğer admin kullanıcı yoksa oluştur

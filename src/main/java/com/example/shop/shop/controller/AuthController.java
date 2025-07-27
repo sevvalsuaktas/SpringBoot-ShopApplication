@@ -45,7 +45,11 @@ public class AuthController {
                 .roles(Set.of(Role.ROLE_USER))
                 .build();
         userRepo.save(user); // veri tabanına bilgileri kaydediyor
-        String token = tokenProvider.generateToken(user.getUsername()); // ve bir token üretiyor endpoint requestleri için response alırken bu tokenı kullanıyoruz
+
+        String token = tokenProvider.generateToken(
+                user.getUsername(),
+                user.getRoles()
+        ); // ve bir token üretiyor endpoint requestleri için response alırken bu tokenı kullanıyoruz
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
@@ -54,7 +58,14 @@ public class AuthController {
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
         );
-        String token = tokenProvider.generateToken(auth.getName()); // girilen bilgilerden sonra yine aynı amaçla bir token üretiyor
+        // authentication başarılıysa, DB'den User'ı çekip rollerini alalım
+        User user = userRepo.findByUsername(auth.getName())
+                .orElseThrow();  // güvenlik açısından zaten var olmalı
+
+        String token = tokenProvider.generateToken(
+                user.getUsername(),
+                user.getRoles()
+        ); // girilen bilgilerden sonra yine aynı amaçla bir token üretiyor
         return ResponseEntity.ok(new AuthResponse(token));
     }
 }

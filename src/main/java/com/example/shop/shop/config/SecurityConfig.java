@@ -1,7 +1,9 @@
 package com.example.shop.shop.config;
 
 import com.example.shop.shop.security.JwtAuthenticationFilter;
-import org.springframework.context.annotation.*;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
@@ -25,39 +27,51 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // State‑less bir REST API için oturumu yönetmeyiz
+                // Stateless REST API: session yönetimini kapat
                 .sessionManagement(sm -> sm
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // CSRF’yi sadece form‑login için kullanırız, API’da kapatıyoruz
+                // CSRF, Basic Auth, Form‑Login kapalı
                 .csrf(csrf -> csrf.disable())
-
-                // Basic Auth ve Form‑Login’i kapatıyoruz (JWT kullanacağız)
                 .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(form -> form.disable())
 
-                // İzinler
+                // Yetkilendirme kuralları
                 .authorizeHttpRequests(auth -> auth
-                        // Kayıt/giriş açık
+                        // Auth işlemleri herkese açık
                         .requestMatchers("/api/v1/auth/**").permitAll()
-                        // Yalnızca ADMIN erişebilsin
+
+                        // Admin-only endpoint’leriniz (kullanıcı listesi, istatistik vb.)
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
-                        // Geri kalan tüm isteklere authentication zorunlu
+
+                        // Kategori yönetimi: sadece ADMIN
+                        .requestMatchers(HttpMethod.POST,   "/api/v1/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/v1/categories/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/categories/**").hasRole("ADMIN")
+
+                        // Ürün yönetimi: sadece ADMIN
+                        .requestMatchers(HttpMethod.POST,   "/api/v1/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.PUT,    "/api/v1/products/**").hasRole("ADMIN")
+                        .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasRole("ADMIN")
+
+                        // Geri kalan (GET + diğer endpoint’ler): oturum açmış kullanıcı
                         .anyRequest().authenticated()
                 )
 
-                // JWT filtresini UsernamePasswordAuthenticationFilter’dan önce çalıştır
+                // JWT filtresini Spring Security zincirine ekle
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
+    // Şifreleri BCrypt ile hash’lemek için
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
+    // AuthenticationManager bean’ini expose et
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config
@@ -65,6 +79,3 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 }
-
-
-
