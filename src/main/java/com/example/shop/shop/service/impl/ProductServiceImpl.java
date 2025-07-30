@@ -3,16 +3,22 @@ package com.example.shop.shop.service.impl;
 import com.example.shop.shop.client.InventoryClient;
 import com.example.shop.shop.dto.InventoryDto;
 import com.example.shop.shop.dto.ProductDto;
+import com.example.shop.shop.logging.Loggable;
 import com.example.shop.shop.model.Category;
 import com.example.shop.shop.model.Product;
 import com.example.shop.shop.repository.ProductRepository;
 import com.example.shop.shop.repository.CategoryRepository;
 import com.example.shop.shop.service.ProductService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor // Lombok, final olarak işaretlenmiş tüm alanları parametre olarak alan bir constructor oluşturur. Böylece repo, categoryRepo ve inventoryClient otomatik inject edilir.
 @Transactional // Sınıf içindeki tüm public metodları bir transaction’a sarar; CRUD işlemlerinde rollback/fail-silence davranışını sağlar.
@@ -21,6 +27,7 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepo; // Category ilişkili sorgular için
     private final InventoryClient inventoryClient; // Harici (veya stub) envanter servisine Feign client aracılığıyla bağlanmak için
 
+    @Loggable
     private ProductDto toDto(Product e) { // Product entity’sini API’ya dönecek ProductDto’ya çevirir.
         return ProductDto.builder() //builder() deseniyle sadece gerekli alanları alır. Henüz stok bilgisi (inStock) eklenmemiştir; bu DTO’ya getById içinde sonradan ekleyeceğiz.
                 .id(e.getId())
@@ -32,6 +39,7 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
+    @Loggable
     private Product toEntity(ProductDto d) { // API’dan gelen ProductDto’yu yeni bir Product entity’sine dönüştürür.
         Category cat = categoryRepo.findById(d.getCategoryId()) // id ye göre category arıyor bulamazsa hata fırlatıyor
                 .orElseThrow(() -> new RuntimeException("Kategori bulunamadı: " + d.getCategoryId()));
@@ -45,7 +53,10 @@ public class ProductServiceImpl implements ProductService {
                 .build();
     }
 
+    @Loggable
     @Override
+    @Cacheable(value = "product", key = "#id")
+    @CircuitBreaker(name = "inventoryService", fallbackMethod = "inventoryFallback")
     public ProductDto getById(Long id) {
         Product e = repo.findById(id) // findById ile veritabanından ürünü alır, yoksa RuntimeException fırlatır.
                 .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + id));
@@ -54,22 +65,52 @@ public class ProductServiceImpl implements ProductService {
         // Feign ile inventory servisten stok al
         InventoryDto inv = inventoryClient.getStock(id); // stok miktarını çeker
         dto.setInStock(inv.getAvailable() > 0); // dto ya boolean stok durumu ekler
-
         return dto;
     }
 
-    @Override
-    public Page<ProductDto> getAll(Pageable page) { // Sayfalı (Pageable) ürün listesini DTO listesine dönüştürür.
-        return repo.findAll(page).map(this::toDto); // JPA sayfalı sonuç döner, map(this::toDto) her bir entity’yi DTO’ya çevirir.
+    // Circuit Breaker fallback metodu
+    // İmzası: orijinalin parametreleri + Throwable
+    public ProductDto inventoryFallback(Long id, Throwable ex) {
+        log.warn("Inventory servisi çağrısında hata: {}, id={} – stok 'false' olarak döndürülüyor",
+                ex.toString(), id);
+        // Hata durumunda bile ürünü döndür, stok=false
+        Product product = repo.findById(id)
+                .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + id));
+        ProductDto dto = toDto(product);
+        dto.setInStock(false);
+        return dto;
     }
 
+    @Loggable
     @Override
+    @Cacheable(value = "products", key = "#page.pageNumber + '-' + #page.pageSize")
+    @CircuitBreaker(name = "inventoryService", fallbackMethod = "listFallback")
+    public Page<ProductDto> getAll(Pageable page) {
+        return repo.findAll(page)
+                .map(e -> {
+                    ProductDto dto = toDto(e);
+                    InventoryDto inv = inventoryClient.getStock(e.getId());
+                    dto.setInStock(inv.getAvailable() > 0);
+                    return dto;
+                });
+    }
+
+    public Page<ProductDto> listFallback(Pageable page, Throwable ex) {
+        log.warn("Inventory servisi listeleme sırasında hata: {} – stok bilgisi olmadan dönüyoruz", ex.toString());
+        return repo.findAll(page).map(this::toDto);
+    }
+
+    @Loggable
+    @Override
+    @CacheEvict(value = {"products", "product"}, allEntries = true)
     public ProductDto create(ProductDto dto) {
         Product saved = repo.save(toEntity(dto)); // veritabanına kaydeder
         return toDto(saved);
     }
 
+    @Loggable
     @Override
+    @CacheEvict(value = {"products", "product"}, allEntries = true)
     public ProductDto update(Long id, ProductDto dto) {
         Product existing = repo.findById(id) // var olan ürünü bulur yoksa hata fırlatır
                 .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + id));
@@ -85,18 +126,46 @@ public class ProductServiceImpl implements ProductService {
         return toDto(repo.save(existing));
     }
 
+    @Loggable
     @Override
-    public void delete(Long id) { // id ye göre üürn veritabanından silinir
+    @CacheEvict(value = {"products", "product"}, allEntries = true)
+    public void delete(Long id) { // id ye göre ürün veritabanından silinir
         repo.deleteById(id);
     }
 
+    @Loggable
     @Override
+    @CircuitBreaker(name = "inventoryService", fallbackMethod = "searchFallback")
     public Page<ProductDto> searchByName(String name, Pageable page) {
+        return repo.findByNameContainingIgnoreCase(name, page)
+                .map(e -> {
+                    ProductDto dto = toDto(e);
+                    InventoryDto inv = inventoryClient.getStock(e.getId());
+                    dto.setInStock(inv.getAvailable() > 0);
+                    return dto;
+                });
+    }
+
+    public Page<ProductDto> searchFallback(String name, Pageable page, Throwable ex) {
+        log.warn("Inventory servisi aramada hata: {} – stok bilgisi olmadan dönüyoruz", ex.toString());
         return repo.findByNameContainingIgnoreCase(name, page).map(this::toDto);
     }
 
+    @Loggable
     @Override
+    @CircuitBreaker(name = "inventoryService", fallbackMethod = "filterFallback")
     public Page<ProductDto> filterByCategory(Long catId, Pageable page) {
+        return repo.findByCategoryId(catId, page)
+                .map(e -> {
+                    ProductDto dto = toDto(e);
+                    InventoryDto inv = inventoryClient.getStock(e.getId());
+                    dto.setInStock(inv.getAvailable() > 0);
+                    return dto;
+                });
+    }
+
+    public Page<ProductDto> filterFallback(Long catId, Pageable page, Throwable ex) {
+        log.warn("Inventory servisi filtrelemede hata: {} – stok bilgisi olmadan dönüyoruz", ex.toString());
         return repo.findByCategoryId(catId, page).map(this::toDto);
     }
 }

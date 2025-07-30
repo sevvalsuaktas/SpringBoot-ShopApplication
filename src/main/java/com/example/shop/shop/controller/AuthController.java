@@ -3,6 +3,7 @@ package com.example.shop.shop.controller;
 import com.example.shop.shop.dto.RegisterRequest;
 import com.example.shop.shop.dto.LoginRequest;
 import com.example.shop.shop.dto.AuthResponse;
+import com.example.shop.shop.logging.Loggable;
 import com.example.shop.shop.model.Role;
 import com.example.shop.shop.model.User;
 import com.example.shop.shop.repository.UserRepository;
@@ -34,6 +35,7 @@ public class AuthController {
         this.encoder = encoder;
     }
 
+    @Loggable
     @PostMapping("/register") // yeni kullanıcı için register endpointi
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
         if (userRepo.findByUsername(req.getUsername()).isPresent()) { // eğer aynı isimli bir kullanıcı varsa hata fırlatıyor
@@ -53,6 +55,7 @@ public class AuthController {
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
+    @Loggable
     @PostMapping("/login") // var olan kullanıcı için login endpointi
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         Authentication auth = authManager.authenticate(

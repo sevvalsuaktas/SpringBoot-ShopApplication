@@ -2,6 +2,7 @@ package com.example.shop.shop.service.impl;
 
 import com.example.shop.shop.dto.OrderDto;
 import com.example.shop.shop.dto.OrderItemDto;
+import com.example.shop.shop.logging.Loggable;
 import com.example.shop.shop.model.Cart;
 import com.example.shop.shop.model.CartStatus;
 import com.example.shop.shop.model.Order;
@@ -13,6 +14,7 @@ import com.example.shop.shop.repository.OrderItemRepository;
 import com.example.shop.shop.repository.OrderRepository;
 import com.example.shop.shop.service.OrderService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -29,6 +32,7 @@ public class OrderServiceImpl implements OrderService {
     private final CartItemRepository cartItemRepo;
     private final OrderItemRepository orderItemRepo;
 
+    @Loggable
     private OrderItemDto toItemDto(OrderItem item) {
         return OrderItemDto.builder()
                 .id(item.getId())
@@ -38,6 +42,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
+    @Loggable
     private OrderDto toDto(Order order) {
         return OrderDto.builder()
                 .id(order.getId())
@@ -51,6 +56,7 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
+    @Loggable
     @Override
     public OrderDto createFromCart(Long customerId) {
         Cart cart = cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE)
@@ -86,6 +92,7 @@ public class OrderServiceImpl implements OrderService {
         return toDto(order);
     }
 
+    @Loggable
     @Override
     public OrderDto getById(Long orderId) {
         return orderRepo.findById(orderId)
@@ -93,6 +100,7 @@ public class OrderServiceImpl implements OrderService {
                 .orElseThrow(() -> new RuntimeException("Sipariş bulunamadı: " + orderId));
     }
 
+    @Loggable
     @Override
     public List<OrderDto> getByCustomer(Long customerId) {
         return orderRepo.findByCustomerId(customerId).stream()
@@ -100,6 +108,7 @@ public class OrderServiceImpl implements OrderService {
                 .collect(Collectors.toList());
     }
 
+    @Loggable
     @Override
     public OrderDto updateStatus(Long orderId, String status) {
         Order order = orderRepo.findById(orderId)

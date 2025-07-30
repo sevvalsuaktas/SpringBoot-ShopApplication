@@ -34,7 +34,6 @@ public class SecurityConfig {
 
                 // CSRF, Basic Auth, Form‑Login kapalı
                 .csrf(csrf -> csrf.disable())
-                .httpBasic(httpBasic -> httpBasic.disable())
                 .formLogin(form -> form.disable())
 
                 // Yetkilendirme kuralları

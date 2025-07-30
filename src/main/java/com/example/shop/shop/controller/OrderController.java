@@ -1,6 +1,7 @@
 package com.example.shop.shop.controller;
 
 import com.example.shop.shop.dto.OrderDto;
+import com.example.shop.shop.logging.Loggable;
 import com.example.shop.shop.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -16,24 +17,28 @@ public class OrderController {
 
     private final OrderService orderService;
 
+    @Loggable
     @PostMapping("/from-cart/{customerId}") // girilen müşteriye göre active sepetten order oluşturur
     public ResponseEntity<OrderDto> createOrder(@PathVariable Long customerId) {
         OrderDto created = orderService.createFromCart(customerId);
         return ResponseEntity.status(HttpStatus.CREATED).body(created); // response olarak created döner
     }
 
+    @Loggable
     @GetMapping("/{orderId}") // istenen id ile sepeti getirir
     public ResponseEntity<OrderDto> getOrder(@PathVariable Long orderId) {
         OrderDto dto = orderService.getById(orderId);
         return ResponseEntity.ok(dto);
     }
 
+    @Loggable
     @GetMapping("/customer/{customerId}") // müşterinin sepetlerini listeler
     public ResponseEntity<List<OrderDto>> getByCustomer(@PathVariable Long customerId) {
         List<OrderDto> orders = orderService.getByCustomer(customerId);
         return ResponseEntity.ok(orders);
     }
 
+    @Loggable
     @PatchMapping("/{orderId}/status") // sipariş duurmunu günceller NEW, CANCELLED, COMPLETED, PROCESSING
     public ResponseEntity<OrderDto> updateStatus(
             @PathVariable Long orderId,

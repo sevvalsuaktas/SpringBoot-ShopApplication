@@ -2,6 +2,7 @@ package com.example.shop.shop.service.impl;
 
 import com.example.shop.shop.dto.PaymentRequestDto;
 import com.example.shop.shop.dto.PaymentResponseDto;
+import com.example.shop.shop.logging.Loggable;
 import com.example.shop.shop.model.Order;
 import com.example.shop.shop.model.OrderStatus;
 import com.example.shop.shop.model.Payment;
@@ -9,11 +10,13 @@ import com.example.shop.shop.repository.OrderRepository;
 import com.example.shop.shop.repository.PaymentRepository;
 import com.example.shop.shop.service.PaymentService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -21,6 +24,7 @@ public class PaymentServiceImpl implements PaymentService {
     private final PaymentRepository paymentRepo;
     private final OrderRepository orderRepo;
 
+    @Loggable
     @Override
     public PaymentResponseDto processPayment(PaymentRequestDto request) {
         Order order = orderRepo.findById(request.getOrderId())

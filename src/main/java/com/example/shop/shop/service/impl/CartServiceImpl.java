@@ -2,6 +2,7 @@ package com.example.shop.shop.service.impl;
 
 import com.example.shop.shop.dto.CartDto;
 import com.example.shop.shop.dto.CartItemDto;
+import com.example.shop.shop.logging.Loggable;
 import com.example.shop.shop.model.Cart;
 import com.example.shop.shop.model.CartItem;
 import com.example.shop.shop.model.CartStatus;
@@ -11,11 +12,13 @@ import com.example.shop.shop.repository.CartItemRepository;
 import com.example.shop.shop.repository.ProductRepository;
 import com.example.shop.shop.service.CartService;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 @Transactional
@@ -24,6 +27,7 @@ public class CartServiceImpl implements CartService {
     private final CartItemRepository itemRepo;
     private final ProductRepository productRepo;
 
+    @Loggable
     private CartDto toDto(Cart cart) {
         return CartDto.builder()
                 .id(cart.getId())
@@ -35,6 +39,7 @@ public class CartServiceImpl implements CartService {
                 .build();
     }
 
+    @Loggable
     private CartItemDto toItemDto(CartItem item) {
         return CartItemDto.builder()
                 .id(item.getId())
@@ -43,6 +48,7 @@ public class CartServiceImpl implements CartService {
                 .build();
     }
 
+    @Loggable
     @Override
     public CartDto getActiveCart(Long customerId) {
         Cart cart = cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE) // müşteriye ait active sepet var mı kontrol eder
@@ -55,6 +61,7 @@ public class CartServiceImpl implements CartService {
         return toDto(cart);
     }
 
+    @Loggable
     @Override
     public CartItemDto addItem(Long customerId, CartItemDto dto) {
         Cart cart = cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE) // müşterinin aktif sepeti yoksa hata fırlatır
@@ -80,6 +87,7 @@ public class CartServiceImpl implements CartService {
         return toItemDto(saved);
     }
 
+    @Loggable
     @Override
     public void removeItem(Long cartItemId) {
         CartItem item = itemRepo.findById(cartItemId)
@@ -87,6 +95,7 @@ public class CartServiceImpl implements CartService {
         itemRepo.delete(item);
     }
 
+    @Loggable
     @Override
     public CartDto checkout(Long customerId) {
         Cart cart = cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE)
