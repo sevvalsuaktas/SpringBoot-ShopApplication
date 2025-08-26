@@ -9,6 +9,7 @@ import com.example.shop.shop.model.Payment;
 import com.example.shop.shop.repository.OrderRepository;
 import com.example.shop.shop.repository.PaymentRepository;
 import com.example.shop.shop.service.PaymentService;
+import io.github.resilience4j.circuitbreaker.annotation.CircuitBreaker;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class PaymentServiceImpl implements PaymentService {
 
     @Loggable
     @Override
+    @CircuitBreaker(name = "paymentService", fallbackMethod = "paymentFallback")
     public PaymentResponseDto processPayment(PaymentRequestDto request) {
         Order order = orderRepo.findById(request.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Sipariş bulunamadı: " + request.getOrderId()));
@@ -42,12 +44,23 @@ public class PaymentServiceImpl implements PaymentService {
 
         // Sipariş durumunu güncelle
         order.setStatus(OrderStatus.COMPLETED);
-        order.setUpdatedAt(LocalDateTime.now());
         orderRepo.save(order);
 
         return PaymentResponseDto.builder()
                 .paymentId(payment.getId())
                 .status(payment.getStatus())
+                .build();
+    }
+
+    public PaymentResponseDto paymentFallback(PaymentRequestDto request, Throwable ex) {
+        log.warn("Ödeme servisi çağrısında hata: {} – orderId={} için fallback dönülüyor",
+                ex.toString(), request.getOrderId());
+
+        // Hata durumunda uygun şekilde geri dönüş yap
+        return PaymentResponseDto.builder()
+                .paymentId(null)
+                .status("FAILED")
+                .message("Ödeme servisine ulaşılamadı, lütfen tekrar deneyin.")
                 .build();
     }
 }

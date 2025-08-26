@@ -2,8 +2,10 @@ package com.example.shop.shop.controller;
 
 import com.example.shop.shop.dto.CartDto;
 import com.example.shop.shop.dto.CartItemDto;
+import com.example.shop.shop.dto.OrderDto;
 import com.example.shop.shop.logging.Loggable;
 import com.example.shop.shop.service.CartService;
+import com.example.shop.shop.service.OrderService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -14,6 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class CartController {
 
     private final CartService cartService;
+    private final OrderService orderService;
 
     @Loggable
     @GetMapping("/{customerId}") // customer id sine göre active sepeti döndürür eğer sepet yoksa yeni oluşturur
@@ -32,19 +35,16 @@ public class CartController {
     }
 
     @Loggable
-    @DeleteMapping("/items/{itemId}") // girilen item id ye göre ürünü sepetten siler
-    public ResponseEntity<Void> removeItem(@PathVariable Long itemId) {
-        cartService.removeItem(itemId);
+    @DeleteMapping("/{customerId}/items/{itemId}")
+    public ResponseEntity<Void> removeItem(@PathVariable Long customerId, @PathVariable Long itemId) {
+        cartService.removeItem(customerId, itemId);
         return ResponseEntity.noContent().build();
     }
 
     @Loggable
-    @PostMapping("/{customerId}/checkout") // girilen customer id sine göre o müşterinin sepetini ORDERED hale getirir yani ckeckout olur
-    public ResponseEntity<CartDto> checkout(@PathVariable Long customerId) {
-        CartDto checked = cartService.checkout(customerId);
-        return ResponseEntity.ok(checked);
+    @PostMapping("/{customerId}/checkout")
+    public ResponseEntity<OrderDto> checkout(@PathVariable Long customerId) {
+        OrderDto order = orderService.createFromCart(customerId);
+        return ResponseEntity.status(201).body(order);
     }
 }
-
-
-

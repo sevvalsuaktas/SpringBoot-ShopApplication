@@ -12,6 +12,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/products")
@@ -21,26 +23,10 @@ public class ProductController {
     private final ProductService productService;
 
     @Loggable
-    @GetMapping // tüm ürünleri pageable listeleyen liste döner
-    public ResponseEntity<Page<ProductDto>> getAll(
-            @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(productService.getAll(pageable));
-    }
-
-    @Loggable
-    @GetMapping("/search")
-    public ResponseEntity<Page<ProductDto>> searchByName( // isme göre arama yapıyor
-            @RequestParam String name,
-            @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(productService.searchByName(name, pageable));
-    }
-
-    @Loggable
-    @GetMapping("/filter")
-    public ResponseEntity<Page<ProductDto>> filterByCategory( // kategorilere göre arama yapıyor
-            @RequestParam Long categoryId,
-            @PageableDefault(size = 20) Pageable pageable) {
-        return ResponseEntity.ok(productService.filterByCategory(categoryId, pageable));
+    @GetMapping
+    public ResponseEntity<List<ProductDto>> getAll() {
+        List<ProductDto> products = productService.getAll();
+        return ResponseEntity.ok(products);
     }
 
     @Loggable
@@ -75,5 +61,22 @@ public class ProductController {
         productService.delete(id);
         return ResponseEntity.noContent().build();
     }
+
+    /*
+    @Loggable
+    @GetMapping("/products/search")
+    public ResponseEntity<List<ProductDto>> search(
+            @RequestParam String name
+    ) {
+        return ResponseEntity.ok(productService.searchByName(name));
+    }
+
+    @Loggable
+    @GetMapping("/products/filter")
+    public ResponseEntity<List<ProductDto>> filterByCategory(
+            @RequestParam Long categoryId
+    ) {
+        return ResponseEntity.ok(productService.filterByCategory(categoryId));
+    }*/
 }
 

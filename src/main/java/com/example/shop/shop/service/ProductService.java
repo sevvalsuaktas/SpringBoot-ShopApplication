@@ -4,13 +4,15 @@ import com.example.shop.shop.dto.ProductDto;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.util.List;
+
 public interface ProductService {
-    Page<ProductDto> getAll(Pageable pageable);
+    List<ProductDto> getAll();
     ProductDto getById(Long id);
     ProductDto create(ProductDto dto);
     ProductDto update(Long id, ProductDto dto);
     void delete(Long id);
-    Page<ProductDto> searchByName(String name, Pageable pageable);
-    Page<ProductDto> filterByCategory(Long categoryId, Pageable pageable);
+    List<ProductDto> searchByName(String name);
+    List<ProductDto> filterByCategory(Long categoryId);
 }
 

@@ -9,6 +9,6 @@ import java.util.Optional;
 
 @Repository
 public interface CartRepository extends JpaRepository<Cart, Long> {
-    Optional<Cart> findByCustomerIdAndStatus(Long customerId, CartStatus status); // findByCustomerIdAndStatus metodu aktif (ACTIVE) sepeti bulmak için, yoksa yenisini oluşturmamız için gerekecek.
+    Optional<Cart> findByCustomerIdAndStatus(Long customerId, CartStatus status);
 }
 

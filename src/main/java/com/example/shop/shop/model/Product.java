@@ -22,7 +22,7 @@ public class Product {
     @Column(nullable = false)
     private Double price;
 
-    private String imageUrl;
+    //private String imageUrl;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")

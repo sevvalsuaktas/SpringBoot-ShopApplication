@@ -1,0 +1,279 @@
+package com.example.shop.shop.service;
+
+import com.example.shop.shop.dto.OrderDto;
+import com.example.shop.shop.model.*;
+import com.example.shop.shop.repository.CartItemRepository;
+import com.example.shop.shop.repository.CartRepository;
+import com.example.shop.shop.repository.OrderItemRepository;
+import com.example.shop.shop.repository.OrderRepository;
+import com.example.shop.shop.service.impl.OrderServiceImpl;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.ArgumentCaptor;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Optional;
+
+import static org.assertj.core.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class OrderServiceImplTest {
+
+    @Mock
+    private OrderRepository orderRepo;
+
+    @Mock
+    private CartRepository cartRepo;
+
+    @Mock
+    private CartItemRepository cartItemRepo; // Serviste field var; testte de mock’layalım
+
+    @Mock
+    private OrderItemRepository orderItemRepo;
+
+    @InjectMocks
+    private OrderServiceImpl orderService;
+
+    @Test
+    @DisplayName("createFromCart: aktif sepet yoksa exception fırlatır")
+    void createFromCart_noActiveCart_throwsException() {
+        // Arrange
+        when(cartRepo.findByCustomerIdAndStatus(1L, CartStatus.ACTIVE))
+                .thenReturn(Optional.empty());
+
+        // Act & Assert
+        assertThatThrownBy(() -> orderService.createFromCart(1L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Aktif sepet bulunamadı: 1");
+    }
+
+    @Test
+    @DisplayName("createFromCart: boş sepet için exception fırlatır")
+    void createFromCart_emptyCart_throwsException() {
+        // Arrange
+        Cart emptyCart = Cart.builder()
+                .customerId(2L)
+                .status(CartStatus.ACTIVE)
+                .items(List.of())
+                .build();
+
+        when(cartRepo.findByCustomerIdAndStatus(2L, CartStatus.ACTIVE))
+                .thenReturn(Optional.of(emptyCart));
+
+        // Act & Assert
+        assertThatThrownBy(() -> orderService.createFromCart(2L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Sepet boş");
+    }
+
+    @Test
+    @DisplayName("createFromCart: valid cart ile sipariş oluşturur ve DTO döndürür")
+    void createFromCart_validCart_createsOrder() {
+        // Arrange
+        long customerId = 3L;
+
+        Product product = Product.builder()
+                .id(10L)
+                .price(50.0)
+                .build();
+
+        CartItem ci = CartItem.builder()
+                .product(product)
+                .quantity(4)
+                .build();
+
+        Cart cart = Cart.builder()
+                .customerId(customerId)
+                .status(CartStatus.ACTIVE)
+                .items(List.of(ci))
+                .build();
+
+        when(cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE))
+                .thenReturn(Optional.of(cart));
+
+        LocalDateTime created = LocalDateTime.of(2025, 8, 6, 9, 0);
+        LocalDateTime updated = LocalDateTime.of(2025, 8, 6, 9, 0);
+
+        // orderRepo.save -> ID ve timestamp'leri setli bir Order döndürelim
+        when(orderRepo.save(any(Order.class))).thenAnswer(inv -> {
+            Order in = inv.getArgument(0);
+            return Order.builder()
+                    .id(100L)
+                    .customerId(in.getCustomerId())
+                    .status(in.getStatus())
+                    .createdAt(created)
+                    .updatedAt(updated)
+                    .build();
+        });
+
+        // saveAll aynı listeyi döndürsün
+        when(orderItemRepo.saveAll(anyList()))
+                .thenAnswer(inv -> inv.getArgument(0));
+
+        when(cartRepo.save(any(Cart.class))).thenReturn(cart);
+
+        // Act
+        OrderDto dto = orderService.createFromCart(customerId);
+
+        // Assert
+        assertThat(dto.getId()).isEqualTo(100L);
+        assertThat(dto.getCustomerId()).isEqualTo(customerId);
+        assertThat(dto.getStatus()).isEqualTo(OrderStatus.NEW.name());
+        assertThat(dto.getCreatedAt()).isEqualTo(created);
+        assertThat(dto.getUpdatedAt()).isEqualTo(updated);
+        assertThat(dto.getItems()).hasSize(1);
+        assertThat(dto.getItems().get(0).getProductId()).isEqualTo(10L);
+        assertThat(dto.getItems().get(0).getQuantity()).isEqualTo(4);
+        assertThat(dto.getItems().get(0).getPriceAtPurchase()).isEqualTo(50.0);
+
+        // cart ORDERED oldu mu?
+        verify(cartRepo).save(argThat(c -> c.getStatus() == CartStatus.ORDERED));
+        verify(orderRepo).save(any(Order.class));
+        verify(orderItemRepo).saveAll(anyList());
+    }
+
+    @Test
+    @DisplayName("getById: var olan siparişi döndürür")
+    void getById_existingOrder_returnsDto() {
+        // Arrange
+        long orderId = 200L;
+        LocalDateTime created = LocalDateTime.of(2025, 8, 6, 8, 0);
+        LocalDateTime updated = LocalDateTime.of(2025, 8, 6, 8, 0);
+
+        Order order = Order.builder()
+                .id(orderId)
+                .customerId(5L)
+                .status(OrderStatus.NEW)
+                .createdAt(created)
+                .updatedAt(updated)
+                .items(List.of())
+                .build();
+
+        when(orderRepo.findById(orderId)).thenReturn(Optional.of(order));
+
+        // Act
+        OrderDto dto = orderService.getById(orderId);
+
+        // Assert
+        assertThat(dto.getId()).isEqualTo(orderId);
+        assertThat(dto.getStatus()).isEqualTo(OrderStatus.NEW.name());
+        assertThat(dto.getCreatedAt()).isEqualTo(created);
+        assertThat(dto.getUpdatedAt()).isEqualTo(updated);
+    }
+
+    @Test
+    @DisplayName("getById: olmayan sipariş için exception fırlatır")
+    void getById_missingOrder_throwsException() {
+        when(orderRepo.findById(300L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> orderService.getById(300L))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Sipariş bulunamadı: 300");
+    }
+
+    @Test
+    @DisplayName("getByCustomer: müşteri siparişlerini döndürür")
+    void getByCustomer_returnsDtos() {
+        // Arrange
+        long customerId = 6L;
+        Order o1 = Order.builder().id(1L).customerId(customerId)
+                .status(OrderStatus.NEW)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .items(List.of())
+                .build();
+        Order o2 = Order.builder().id(2L).customerId(customerId)
+                .status(OrderStatus.NEW)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .items(List.of())
+                .build();
+
+        when(orderRepo.findByCustomerId(customerId)).thenReturn(List.of(o1, o2));
+
+        // Act
+        List<OrderDto> dtos = orderService.getByCustomer(customerId);
+
+        // Assert
+        assertThat(dtos).hasSize(2)
+                .extracting(OrderDto::getId)
+                .containsExactly(1L, 2L);
+    }
+
+    @Test
+    @DisplayName("updateStatus: var olan siparişin statüsünü günceller")
+    void updateStatus_validStatus_updatesDto() {
+        // Arrange
+        long orderId = 400L;
+        Order existing = Order.builder()
+                .id(orderId)
+                .customerId(7L)
+                .status(OrderStatus.NEW)
+                .createdAt(LocalDateTime.of(2025, 8, 6, 7, 0))
+                .updatedAt(LocalDateTime.of(2025, 8, 6, 7, 0))
+                .items(List.of())
+                .build();
+
+        Order updated = Order.builder()
+                .id(orderId)
+                .customerId(7L)
+                .status(OrderStatus.COMPLETED)
+                .createdAt(existing.getCreatedAt())
+                .updatedAt(LocalDateTime.of(2025, 8, 6, 12, 0))
+                .items(List.of())
+                .build();
+
+        when(orderRepo.findById(orderId)).thenReturn(Optional.of(existing));
+        when(orderRepo.save(any(Order.class))).thenReturn(updated);
+
+        // Act
+        OrderDto dto = orderService.updateStatus(orderId, "COMPLETED");
+
+        // Assert
+        assertThat(dto.getStatus()).isEqualTo(OrderStatus.COMPLETED.name());
+        assertThat(dto.getUpdatedAt()).isEqualTo(updated.getUpdatedAt());
+
+        ArgumentCaptor<Order> captor = ArgumentCaptor.forClass(Order.class);
+        verify(orderRepo).save(captor.capture());
+        assertThat(captor.getValue().getStatus()).isEqualTo(OrderStatus.COMPLETED);
+    }
+
+    @Test
+    @DisplayName("updateStatus: olmayan sipariş için exception fırlatır")
+    void updateStatus_missingOrder_throwsException() {
+        when(orderRepo.findById(500L)).thenReturn(Optional.empty());
+        assertThatThrownBy(() -> orderService.updateStatus(500L, "ANY"))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Sipariş bulunamadı: 500");
+    }
+
+    @Test
+    @DisplayName("updateStatus: geçersiz status için exception fırlatır")
+    void updateStatus_invalidStatus_throwsException() {
+        // Arrange
+        Order order = Order.builder()
+                .id(600L)
+                .customerId(8L)
+                .status(OrderStatus.NEW)
+                .createdAt(LocalDateTime.now())
+                .updatedAt(LocalDateTime.now())
+                .items(List.of())
+                .build();
+
+        when(orderRepo.findById(600L)).thenReturn(Optional.of(order));
+
+        // Act & Assert
+        assertThatThrownBy(() -> orderService.updateStatus(600L, "INVALID"))
+                .isInstanceOf(RuntimeException.class)
+                .hasMessage("Geçersiz status: INVALID");
+    }
+}
+
+
+

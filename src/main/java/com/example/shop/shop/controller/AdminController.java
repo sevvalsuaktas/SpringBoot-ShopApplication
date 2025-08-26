@@ -14,6 +14,7 @@ import java.util.List;
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
 public class AdminController {
+
     private final UserService userService;
     private final AdminService adminService;
 
@@ -31,4 +32,3 @@ public class AdminController {
         return adminService.getStats();
     }
 }
-

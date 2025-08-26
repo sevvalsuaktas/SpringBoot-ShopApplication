@@ -40,7 +40,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Loggable
     @Override
-    @Cacheable(value = "categories")
+    @Cacheable(value = "categories") // tüm kategorileri cache leyen metot
     public List<CategoryDto> getAll() {
         return repo.findAll().stream()
                 .map(this::toDto)
@@ -49,6 +49,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Loggable
     @Override
+    @Cacheable(value = "category", key = "#id") // tek bir kategoriyi cache leyen metot
     public CategoryDto getById(Long id) {
         return repo.findById(id)
                 .map(this::toDto)
@@ -57,7 +58,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Loggable
     @Override
-    @CacheEvict(value = "categories", allEntries = true)
+    @CacheEvict(value = {"categories", "category"}, allEntries = true) // yeni kategori eklenince hem liste cache ini hem de tekil kategori cache ini temizliyoruz
     public CategoryDto create(CategoryDto dto) { // kategori yoksa oluştur
         Category saved = repo.save(toEntity(dto));
         return toDto(saved);
@@ -65,7 +66,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Loggable
     @Override
-    @CacheEvict(value = "categories", allEntries = true)
+    @CacheEvict(value = {"categories", "category"}, allEntries = true) // kategori güncellenince aynı cache leri temizliyoruz
     public CategoryDto update(Long id, CategoryDto dto) {
         Category existing = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Kategori bulunamadı: " + id));
@@ -76,7 +77,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Loggable
     @Override
-    @CacheEvict(value = "categories", allEntries = true)
+    @CacheEvict(value = {"categories", "category"}, allEntries = true)
     public void delete(Long id) {
         repo.deleteById(id);
     }

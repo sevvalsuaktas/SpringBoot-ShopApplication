@@ -2,6 +2,7 @@ package com.example.shop.shop.service;
 
 import com.example.shop.shop.dto.CartDto;
 import com.example.shop.shop.dto.CartItemDto;
+import com.example.shop.shop.dto.OrderDto;
 
 public interface CartService {
     // Aktif (ACTIVE) sepeti getirir; yoksa yenisini yaratır
@@ -11,8 +12,8 @@ public interface CartService {
     CartItemDto addItem(Long customerId, CartItemDto dto);
 
     // Sepet öğesini siler
-    void removeItem(Long cartItemId);
+    void removeItem(Long customerId, Long cartItemId);
 
     // Sepeti ORDERED durumuna getirir (checkout)
-    CartDto checkout(Long customerId);
+    OrderDto checkout(Long customerId);
 }

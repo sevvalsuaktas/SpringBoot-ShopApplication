@@ -10,11 +10,12 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderDto { // sipariş detayını tutan dto
-    private Long id;
+public class OrderDto {
+    private Long id;          // orderId
     private Long customerId;
+    private Double totalAmount;
     private List<OrderItemDto> items;
-    private String status;
-    private LocalDateTime createdAt; // oluşturulduğu saat
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private String status;    // NEW / PROCESSING / COMPLETED / CANCELLED
 }

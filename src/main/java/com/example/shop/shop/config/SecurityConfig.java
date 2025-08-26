@@ -41,8 +41,16 @@ public class SecurityConfig {
                         // Auth işlemleri herkese açık
                         .requestMatchers("/api/v1/auth/**").permitAll()
 
+                        .requestMatchers("/api/v1/inventory/**").permitAll()
+
+                        // Actuator health/info serbest (container healthcheck için gerekli)
+                        .requestMatchers("/actuator/health", "/actuator/info").permitAll()
+
                         // Admin-only endpoint’leriniz (kullanıcı listesi, istatistik vb.)
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
+
+                        // Sepet işlemleri: sadece giriş yapmış kullanıcı
+                        .requestMatchers("/api/v1/cart/**").authenticated()
 
                         // Kategori yönetimi: sadece ADMIN
                         .requestMatchers(HttpMethod.POST,   "/api/v1/categories/**").hasRole("ADMIN")

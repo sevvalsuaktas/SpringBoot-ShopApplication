@@ -10,3 +10,5 @@ public interface InventoryClient {
     @GetMapping("/api/v1/inventory/{productId}")
     InventoryDto getStock(@PathVariable("productId") Long productId); // her ürün için mevcut stok adedini almak için
 }
+
+// feign arka planda bu metodu HTTP GET isteğine çeviriyor

@@ -1,4 +1,5 @@
 package com.example.shop.shop;
+
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.security.Keys;
 import io.jsonwebtoken.io.Encoders;
