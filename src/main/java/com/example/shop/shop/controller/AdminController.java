@@ -14,21 +14,20 @@ import java.util.List;
 @RequestMapping("/api/v1/admin")
 @RequiredArgsConstructor
 public class AdminController {
-
     private final UserService userService;
     private final AdminService adminService;
 
     @Loggable
     @GetMapping("/users")
-    @PreAuthorize("hasRole('ADMIN')") // sadece admin olan kullanıcılar erişir
-    public List<UserDto> listUsers() { // tüm kullanıcıları DTO listesi olarak döner.
+    @PreAuthorize("hasRole('ADMIN')")
+    public List<UserDto> listUsers() {
         return userService.findAllUsers();
     }
 
     @Loggable
     @GetMapping("/stats")
-    @PreAuthorize("hasRole('ADMIN')") // sadece admin olan kullanıcılar erişir
-    public AdminStatsDto stats() { //kullanıcı sayısı, ürün sayısı, sipariş sayısı, toplam gelir gibi verileri döner.
+    @PreAuthorize("hasRole('ADMIN')")
+    public AdminStatsDto stats() {
         return adminService.getStats();
     }
 }

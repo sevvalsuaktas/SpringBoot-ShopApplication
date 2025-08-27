@@ -27,58 +27,46 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                // Stateless REST API: session yönetimini kapat
                 .sessionManagement(sm -> sm
                         .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 )
 
-                // CSRF, Basic Auth, Form‑Login kapalı
                 .csrf(csrf -> csrf.disable())
                 .formLogin(form -> form.disable())
 
-                // Yetkilendirme kuralları
                 .authorizeHttpRequests(auth -> auth
-                        // Auth işlemleri herkese açık
+
                         .requestMatchers("/api/v1/auth/**").permitAll()
 
                         .requestMatchers("/api/v1/inventory/**").permitAll()
 
-                        // Actuator health/info serbest (container healthcheck için gerekli)
                         .requestMatchers("/actuator/health", "/actuator/info").permitAll()
 
-                        // Admin-only endpoint’leriniz (kullanıcı listesi, istatistik vb.)
                         .requestMatchers("/api/v1/admin/**").hasRole("ADMIN")
 
-                        // Sepet işlemleri: sadece giriş yapmış kullanıcı
                         .requestMatchers("/api/v1/cart/**").authenticated()
 
-                        // Kategori yönetimi: sadece ADMIN
                         .requestMatchers(HttpMethod.POST,   "/api/v1/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/v1/categories/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/categories/**").hasRole("ADMIN")
 
-                        // Ürün yönetimi: sadece ADMIN
                         .requestMatchers(HttpMethod.POST,   "/api/v1/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.PUT,    "/api/v1/products/**").hasRole("ADMIN")
                         .requestMatchers(HttpMethod.DELETE, "/api/v1/products/**").hasRole("ADMIN")
 
-                        // Geri kalan (GET + diğer endpoint’ler): oturum açmış kullanıcı
                         .anyRequest().authenticated()
                 )
 
-                // JWT filtresini Spring Security zincirine ekle
                 .addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }
 
-    // Şifreleri BCrypt ile hash’lemek için
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
 
-    // AuthenticationManager bean’ini expose et
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration config
@@ -86,3 +74,5 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 }
+
+//SecurityConfig, Spring Security’yi JWT tabanlı, stateless bir REST API için yapılandırıyor.

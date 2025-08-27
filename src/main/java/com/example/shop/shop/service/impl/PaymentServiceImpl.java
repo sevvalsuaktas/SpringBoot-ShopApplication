@@ -14,8 +14,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 @Slf4j
 @Service
@@ -28,27 +27,48 @@ public class PaymentServiceImpl implements PaymentService {
     @Loggable
     @Override
     @CircuitBreaker(name = "paymentService", fallbackMethod = "paymentFallback")
+    @Transactional
     public PaymentResponseDto processPayment(PaymentRequestDto request) {
         Order order = orderRepo.findById(request.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Sipariş bulunamadı: " + request.getOrderId()));
 
-        // Ödeme simülasyonu: her zaman başarılı
+        // 1) Ödenecek gerçek tutarı siparişten al
+        BigDecimal due = order.getTotalAmount();
+        if (due == null) {
+            // Emniyet: gerekirse kalemlerden hesapla
+            due = order.getItems().stream()
+                    .map(oi -> BigDecimal.valueOf(oi.getPriceAtPurchase())
+                            .multiply(BigDecimal.valueOf(oi.getQuantity())))
+                    .reduce(BigDecimal.ZERO, BigDecimal::add);
+            order.setTotalAmount(due);
+            orderRepo.save(order);
+        }
+
+        // 2) (Opsiyonel) İstemciden gelen amount varsa doğrula
+        if (request.getAmount() != null) {
+            BigDecimal sent = BigDecimal.valueOf(request.getAmount());
+            if (sent.compareTo(due) != 0) {
+                throw new IllegalArgumentException("Amount mismatch");
+            }
+        }
+
+        // 3) Ödemeyi kaydet — amount'u sipariş toplamından yaz
         Payment payment = Payment.builder()
                 .orderId(request.getOrderId())
-                .amount(request.getAmount())
+                .amount(due.doubleValue())
                 .method(request.getMethod())
                 .status("SUCCESS")
-                .createdAt(LocalDateTime.now())
                 .build();
         payment = paymentRepo.save(payment);
 
-        // Sipariş durumunu güncelle
+        // 4) Sipariş durumunu güncelle
         order.setStatus(OrderStatus.COMPLETED);
         orderRepo.save(order);
 
         return PaymentResponseDto.builder()
                 .paymentId(payment.getId())
                 .status(payment.getStatus())
+                .message("Payment success")
                 .build();
     }
 

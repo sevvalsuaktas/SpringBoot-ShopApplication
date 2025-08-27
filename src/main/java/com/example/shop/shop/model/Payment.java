@@ -2,7 +2,6 @@ package com.example.shop.shop.model;
 
 import jakarta.persistence.*;
 import lombok.*;
-import java.time.LocalDateTime;
 
 @Entity
 @Table(name = "payments")
@@ -20,6 +19,4 @@ public class Payment {
     private Double amount;
     private String method; // ödeme şekli
     private String status;    //"SUCCESS", "FAILED"
-
-    private LocalDateTime createdAt;
 }

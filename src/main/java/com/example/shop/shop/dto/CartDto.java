@@ -8,7 +8,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CartDto { // sepet bilgilerini tutan dto
+public class CartDto {
     private Long id;
     private Long customerId;
     private List<CartItemDto> items;

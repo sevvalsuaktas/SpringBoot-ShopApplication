@@ -10,9 +10,8 @@ import org.springframework.web.bind.annotation.*;
 public class InventoryStubController {
 
     @Loggable
-    @GetMapping("/{productId}") // product id si girilen ürünün stok miktarını almak için endpoint
+    @GetMapping("/{productId}")
     public ResponseEntity<InventoryDto> getStock(@PathVariable Long productId) {
-        // Tüm ürünler için demo amaçlı 100 adet stok girdim
         InventoryDto dto = InventoryDto.builder()
                 .productId(productId)
                 .available(100)

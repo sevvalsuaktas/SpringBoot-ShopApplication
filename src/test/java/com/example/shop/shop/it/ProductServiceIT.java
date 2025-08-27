@@ -16,6 +16,8 @@ import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
 
+import java.math.BigDecimal;
+
 import static com.github.tomakehurst.wiremock.client.WireMock.*;
 import static com.github.tomakehurst.wiremock.core.WireMockConfiguration.options;
 import static org.assertj.core.api.Assertions.assertThat;
@@ -69,7 +71,7 @@ class ProductServiceIT {
                 Product.builder()
                         .name("Telefon")
                         .description("Dokunmatik Telefon")
-                        .price(999.0)
+                        .price(BigDecimal.valueOf(999.99))
                         .category(cat)
                         .build()
         );

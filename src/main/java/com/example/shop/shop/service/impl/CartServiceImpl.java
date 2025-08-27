@@ -13,7 +13,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.stream.Collectors;
 
@@ -117,9 +117,9 @@ public class CartServiceImpl implements CartService {
             throw new RuntimeException("Sepet boş, checkout yapılamaz");
         }
 
-        double total = cart.getItems().stream()
-                .mapToDouble(i -> i.getProduct().getPrice() * i.getQuantity())
-                .sum();
+        BigDecimal total = cart.getItems().stream()
+                .map(i -> i.getProduct().getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         // Order'ı oluştur
         Order order = Order.builder()
@@ -137,7 +137,7 @@ public class CartServiceImpl implements CartService {
         return OrderDto.builder()
                 .id(order.getId())
                 .customerId(customerId)
-                .totalAmount(total)
+                .totalAmount(order.getTotalAmount())
                 .status(order.getStatus().name())
                 .build();
     }

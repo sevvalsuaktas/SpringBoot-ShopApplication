@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CartItemDto { // sepetin içindeki ürünün bilgilerini tutan dto
+public class CartItemDto {
     private Long id;
     private Long productId;
     private Integer quantity;

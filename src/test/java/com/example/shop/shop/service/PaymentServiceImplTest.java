@@ -62,7 +62,6 @@ class PaymentServiceImplTest {
                     .amount(p.getAmount())
                     .method(p.getMethod())
                     .status(p.getStatus())
-                    .createdAt(p.getCreatedAt())
                     .build();
         });
 
@@ -82,7 +81,6 @@ class PaymentServiceImplTest {
         assertThat(savedPayment.getAmount()).isEqualTo(49.99);
         assertThat(savedPayment.getMethod()).isEqualTo("CARD");
         assertThat(savedPayment.getStatus()).isEqualTo("SUCCESS");
-        assertThat(savedPayment.getCreatedAt()).isNotNull();
 
         // Assert — orderRepo.save çağrısında statü COMPLETED olmuş mu kontrolü
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);

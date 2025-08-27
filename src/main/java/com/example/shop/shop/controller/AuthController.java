@@ -18,7 +18,7 @@ import org.springframework.security.crypto.password.PasswordEncoder;
 import java.util.Set;
 
 @RestController
-@RequestMapping("/api/v1/auth") // authentication için endpoint
+@RequestMapping("/api/v1/auth")
 public class AuthController {
     private final AuthenticationManager authManager;
     private final JwtTokenProvider tokenProvider;
@@ -36,40 +36,40 @@ public class AuthController {
     }
 
     @Loggable
-    @PostMapping("/register") // yeni kullanıcı için register endpointi
+    @PostMapping("/register")
     public ResponseEntity<?> register(@RequestBody RegisterRequest req) {
-        if (userRepo.findByUsername(req.getUsername()).isPresent()) { // eğer aynı isimli bir kullanıcı varsa hata fırlatıyor
+        if (userRepo.findByUsername(req.getUsername()).isPresent()) {
             return ResponseEntity.badRequest().body("Username taken");
         }
-        User user = User.builder() // eğer yoksa yeni kullanıcıyı oluşturuyor ve user rolü atıyor
+        User user = User.builder()
                 .username(req.getUsername())
                 .password(encoder.encode(req.getPassword()))
                 .roles(Set.of(Role.ROLE_USER))
                 .build();
-        userRepo.save(user); // veri tabanına bilgileri kaydediyor
+        userRepo.save(user);
 
         String token = tokenProvider.generateToken(
                 user.getUsername(),
                 user.getRoles()
-        ); // ve bir token üretiyor endpoint requestleri için response alırken bu tokenı kullanıyoruz
+        );
+
         return ResponseEntity.ok(new AuthResponse(token));
     }
 
     @Loggable
-    @PostMapping("/login") // var olan kullanıcı için login endpointi
+    @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody LoginRequest req) {
         Authentication auth = authManager.authenticate(
                 new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
         );
-        // authentication başarılıysa, DB'den User'ı çekip rollerini alalım
+
         User user = userRepo.findByUsername(auth.getName())
-                .orElseThrow();  // güvenlik açısından zaten var olmalı
+                .orElseThrow();
 
         String token = tokenProvider.generateToken(
                 user.getUsername(),
                 user.getRoles()
-        ); // girilen bilgilerden sonra yine aynı amaçla bir token üretiyor
+        );
         return ResponseEntity.ok(new AuthResponse(token));
     }
 }
-

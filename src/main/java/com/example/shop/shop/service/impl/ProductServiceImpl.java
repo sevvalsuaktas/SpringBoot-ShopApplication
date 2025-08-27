@@ -18,8 +18,11 @@ import org.springframework.data.domain.*;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
+
+import static io.lettuce.core.internal.LettuceStrings.toDouble;
 
 @Slf4j
 @Service
@@ -30,14 +33,23 @@ public class ProductServiceImpl implements ProductService {
     private final CategoryRepository categoryRepo; // Category ilişkili sorgular için
     private final InventoryClient inventoryClient; // Harici (veya stub) envanter servisine Feign client aracılığıyla bağlanmak için
 
+    // Entity(BigDecimal) -> DTO(Double)
+    private Double toDouble(BigDecimal v) {
+        return v == null ? null : v.doubleValue();
+    }
+
+    // DTO(Double) -> Entity(BigDecimal)
+    private BigDecimal toBigDecimal(Double v) {
+        return v == null ? BigDecimal.ZERO : BigDecimal.valueOf(v);
+    }
+
     @Loggable
     private ProductDto toDto(Product e) { // Product entity’sini API’ya dönecek ProductDto’ya çevirir.
         return ProductDto.builder() //builder() deseniyle sadece gerekli alanları alır. Henüz stok bilgisi (inStock) eklenmemiştir; bu DTO’ya getById içinde sonradan ekleyeceğiz.
                 .id(e.getId())
                 .name(e.getName())
                 .description(e.getDescription())
-                .price(e.getPrice())
-                //.imageUrl(e.getImageUrl())
+                .price(toDouble(e.getPrice()))
                 .categoryId(e.getCategory().getId())
                 .build();
     }
@@ -50,8 +62,7 @@ public class ProductServiceImpl implements ProductService {
         return Product.builder() // Builder deseniyle sadece DTO’dan gelen verileri ve yüklenen Category nesnesini kullanarak Product oluşturur.
                 .name(d.getName())
                 .description(d.getDescription())
-                .price(d.getPrice())
-                //.imageUrl(d.getImageUrl())
+                .price(toBigDecimal(d.getPrice()))
                 .category(cat)
                 .build();
     }
@@ -130,8 +141,7 @@ public class ProductServiceImpl implements ProductService {
                 .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + id));
         existing.setName(dto.getName()); // basit alanları setterlarla günceller
         existing.setDescription(dto.getDescription());
-        existing.setPrice(dto.getPrice());
-        //existing.setImageUrl(dto.getImageUrl());
+        existing.setPrice(toBigDecimal(dto.getPrice()));
         if (!existing.getCategory().getId().equals(dto.getCategoryId())) {
             Category newCat = categoryRepo.findById(dto.getCategoryId())
                     .orElseThrow(() -> new RuntimeException("Kategori bulunamadı: " + dto.getCategoryId()));
@@ -148,7 +158,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Loggable
-    @Override
     @CircuitBreaker(name = "inventoryService", fallbackMethod = "searchFallback")
     public List<ProductDto> searchByName(String name) {
         return repo.findByNameContainingIgnoreCase(name)
@@ -171,7 +180,6 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Loggable
-    @Override
     @CircuitBreaker(name = "inventoryService", fallbackMethod = "filterFallback")
     public List<ProductDto> filterByCategory(Long categoryId) {
         return repo.findByCategoryId(categoryId)

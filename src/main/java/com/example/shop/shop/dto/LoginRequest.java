@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class LoginRequest { // login için gerekli olan bilgileri tutan dto
+public class LoginRequest {
     private String username;
     private String password;
 }

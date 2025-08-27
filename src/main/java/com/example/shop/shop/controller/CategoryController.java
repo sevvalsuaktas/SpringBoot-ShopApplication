@@ -14,32 +14,31 @@ import java.util.List;
 @RequestMapping("/api/v1/categories")
 @RequiredArgsConstructor
 public class CategoryController {
-
     private final CategoryService categoryService;
 
     @Loggable
     @GetMapping
-    public ResponseEntity<List<CategoryDto>> getAll() { // veri tabanından var olan kategorileri çeker
+    public ResponseEntity<List<CategoryDto>> getAll() {
         return ResponseEntity.ok(categoryService.getAll());
     }
 
     @Loggable
-    @GetMapping("/{id}") // istenen id ye göre kategoriyi çeker
+    @GetMapping("/{id}")
     public ResponseEntity<CategoryDto> getById(@PathVariable Long id) {
         return ResponseEntity.ok(categoryService.getById(id));
     }
 
     @Loggable
-    @PostMapping // yeni kategori oluşturmak için endpoint
+    @PostMapping
     public ResponseEntity<CategoryDto> create(@Validated @RequestBody CategoryDto dto) {
         CategoryDto created = categoryService.create(dto);
         return ResponseEntity
                 .status(201)
-                .body(created); // response olarak 201 created döner
+                .body(created);
     }
 
     @Loggable
-    @PutMapping("/{id}") // girilen id yi güncellemek için endpoint
+    @PutMapping("/{id}")
     public ResponseEntity<CategoryDto> update(
             @PathVariable Long id,
             @Validated @RequestBody CategoryDto dto) {
@@ -47,10 +46,9 @@ public class CategoryController {
     }
 
     @Loggable
-    @DeleteMapping("/{id}") // girilen idye göre silme işlemi yapan endpoint
+    @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
         categoryService.delete(id);
         return ResponseEntity.noContent().build();
     }
 }
-

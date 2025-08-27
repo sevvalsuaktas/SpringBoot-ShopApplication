@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class InventoryDto { // stok bilgisini tutan dto
+public class InventoryDto {
     private Long productId;
     private int available;
 }

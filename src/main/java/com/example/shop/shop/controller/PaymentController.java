@@ -15,9 +15,9 @@ public class PaymentController {
     private final PaymentService paymentService;
 
     @Loggable
-    @PostMapping // ödeme isteği geldiğinde bu metot tetiklenir
+    @PostMapping
     public ResponseEntity<PaymentResponseDto> pay(@RequestBody PaymentRequestDto request) {
         PaymentResponseDto response = paymentService.processPayment(request);
-        return ResponseEntity.ok(response); // ödeme bilgilerini işler ve response olarak 200 OK döner
+        return ResponseEntity.ok(response);
     }
 }

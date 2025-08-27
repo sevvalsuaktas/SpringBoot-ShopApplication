@@ -9,7 +9,7 @@ import com.example.shop.shop.service.AdminService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import java.util.stream.Collectors;
+import org.springframework.transaction.annotation.Transactional;
 
 @Slf4j
 @Service
@@ -21,11 +21,12 @@ public class AdminServiceImpl implements AdminService {
 
     @Loggable
     @Override
+    @Transactional(readOnly = true)
     public AdminStatsDto getStats() { // istatistiklere erişebilmek için bir metot (admin-only)
         long userCount = userRepo.count();
         long productCount = productRepo.count();
         long orderCount = orderRepo.count();
-        double totalRevenue = orderRepo.findAll().stream()
+        double totalRevenue = orderRepo.findAllWithItems().stream()
                 .flatMap(o -> o.getItems().stream())
                 .mapToDouble(i -> i.getPriceAtPurchase() * i.getQuantity())
                 .sum();

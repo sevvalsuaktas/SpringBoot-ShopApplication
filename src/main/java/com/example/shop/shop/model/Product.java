@@ -3,6 +3,8 @@ package com.example.shop.shop.model;
 import jakarta.persistence.*;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 @Entity
 @Table(name = "products")
 @Getter
@@ -19,10 +21,8 @@ public class Product {
 
     private String description;
 
-    @Column(nullable = false)
-    private Double price;
-
-    //private String imageUrl;
+    @Column(precision = 12, scale = 2, nullable = false)
+    private BigDecimal price = BigDecimal.ZERO;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")

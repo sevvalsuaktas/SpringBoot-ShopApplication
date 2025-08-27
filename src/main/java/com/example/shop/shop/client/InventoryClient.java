@@ -8,7 +8,5 @@ import org.springframework.web.bind.annotation.PathVariable;
 @FeignClient(name = "inventory", url = "${inventory.service.url}")
 public interface InventoryClient {
     @GetMapping("/api/v1/inventory/{productId}")
-    InventoryDto getStock(@PathVariable("productId") Long productId); // her ürün için mevcut stok adedini almak için
+    InventoryDto getStock(@PathVariable("productId") Long productId);
 }
-
-// feign arka planda bu metodu HTTP GET isteğine çeviriyor

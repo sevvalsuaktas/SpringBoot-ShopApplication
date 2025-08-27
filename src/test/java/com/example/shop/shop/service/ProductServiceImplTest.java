@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -45,7 +46,7 @@ class ProductServiceImplTest {
     private static Product prod(long id, String name, double price, Category c) {
         return Product.builder()
                 .id(id).name(name).description(name + " desc")
-                .price(price).category(c)
+                .price(BigDecimal.valueOf(49.99)).category(c)
                 .build();
     }
 

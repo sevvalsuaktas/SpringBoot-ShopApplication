@@ -24,17 +24,15 @@ public class CacheConfig {
             RedisConnectionFactory factory,
             @Value("${spring.cache.redis.time-to-live:600000}") Duration ttl
     ) {
-        // Key için JSON değil, düz String serileştirmesi
+
         RedisSerializationContext.SerializationPair<String> keyPair =
                 RedisSerializationContext.SerializationPair
                         .fromSerializer(new StringRedisSerializer());
 
-        // Value için JSON serileştirici (Boot’un hazır JSON serializer’ı)
         RedisSerializationContext.SerializationPair<Object> valuePair =
                 RedisSerializationContext.SerializationPair
                         .fromSerializer(RedisSerializer.json());
 
-        // Cache ayarları
         RedisCacheConfiguration config = RedisCacheConfiguration.defaultCacheConfig()
                 .entryTtl(ttl)
                 .disableCachingNullValues()
@@ -42,7 +40,6 @@ public class CacheConfig {
                 .serializeKeysWith(keyPair)
                 .serializeValuesWith(valuePair);
 
-        // RedisCacheManager oluşturup döndür
         return RedisCacheManager.builder(factory)
                 .cacheDefaults(config)
                 .build();

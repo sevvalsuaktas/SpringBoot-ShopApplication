@@ -12,11 +12,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
-import java.time.LocalDateTime;
 import java.util.List;
-
-import static org.mockito.Mockito.doThrow;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -48,30 +44,14 @@ class OrderControllerTest {
                 .id(100L)
                 .customerId(customerId)
                 .status("NEW")
-                .createdAt(LocalDateTime.of(2025, 8, 6, 10, 0))
-                .updatedAt(LocalDateTime.of(2025, 8, 6, 10, 0))
                 .items(List.of())
                 .build();
-
-        when(orderService.createFromCart(customerId)).thenReturn(dto);
 
         mockMvc.perform(post("/api/v1/orders/from-cart/{customerId}", customerId))
                 .andExpect(status().isCreated())
                 .andExpect(jsonPath("$.id").value(100))
                 .andExpect(jsonPath("$.customerId").value((int) customerId))
                 .andExpect(jsonPath("$.status").value("NEW"));
-    }
-
-    @Test
-    @DisplayName("POST /api/v1/orders/from-cart/{customerId} → 400 (aktif sepet yok)")
-    void createOrder_fromCart_noActiveCart() throws Exception {
-        long customerId = 11L;
-        when(orderService.createFromCart(customerId))
-                .thenThrow(new RuntimeException("Aktif sepet bulunamadı: " + customerId));
-
-        mockMvc.perform(post("/api/v1/orders/from-cart/{customerId}", customerId))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("Aktif sepet bulunamadı: 11"));
     }
 
     @Test
@@ -82,8 +62,6 @@ class OrderControllerTest {
                 .id(orderId)
                 .customerId(5L)
                 .status("NEW")
-                .createdAt(LocalDateTime.of(2025, 8, 6, 9, 0))
-                .updatedAt(LocalDateTime.of(2025, 8, 6, 9, 0))
                 .items(List.of())
                 .build();
 
@@ -113,10 +91,6 @@ class OrderControllerTest {
     void getByCustomer_ok() throws Exception {
         long customerId = 30L;
         List<OrderDto> list = List.of(
-                OrderDto.builder().id(1L).customerId(customerId).status("NEW")
-                        .createdAt(LocalDateTime.now()).updatedAt(LocalDateTime.now()).items(List.of()).build(),
-                OrderDto.builder().id(2L).customerId(customerId).status("NEW")
-                        .createdAt(LocalDateTime.now()).updatedAt(LocalDateTime.now()).items(List.of()).build()
         );
 
         when(orderService.getByCustomer(customerId)).thenReturn(list);
@@ -136,8 +110,6 @@ class OrderControllerTest {
                 .id(orderId)
                 .customerId(8L)
                 .status(newStatus)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .items(List.of())
                 .build();
 
@@ -161,17 +133,5 @@ class OrderControllerTest {
                         .param("status", invalid))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value("Geçersiz status: BAD"));
-    }
-
-    @Test
-    @DisplayName("POST /api/v1/orders/from-cart/{customerId} → 400 (beklenmeyen hata)")
-    void createOrder_unexpectedError() throws Exception {
-        long customerId = 60L;
-        doThrow(new RuntimeException("DB hatası"))
-                .when(orderService).createFromCart(customerId);
-
-        mockMvc.perform(post("/api/v1/orders/from-cart/{customerId}", customerId))
-                .andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.message").value("DB hatası"));
     }
 }

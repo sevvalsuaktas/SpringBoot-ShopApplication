@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class AdminStatsDto { // Sistem istatistiklerini (sayısal verileri) taşımak için kullanılır.
+public class AdminStatsDto {
     private long userCount;
     private long productCount;
     private long orderCount;

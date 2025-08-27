@@ -15,7 +15,6 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
 
@@ -49,7 +48,7 @@ class OrderServiceImplTest {
                 .thenReturn(Optional.empty());
 
         // Act & Assert
-        assertThatThrownBy(() -> orderService.createFromCart(1L))
+        assertThatThrownBy(() -> orderService.checkout(1L))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Aktif sepet bulunamadı: 1");
     }
@@ -68,75 +67,9 @@ class OrderServiceImplTest {
                 .thenReturn(Optional.of(emptyCart));
 
         // Act & Assert
-        assertThatThrownBy(() -> orderService.createFromCart(2L))
+        assertThatThrownBy(() -> orderService.checkout(2L))
                 .isInstanceOf(RuntimeException.class)
                 .hasMessage("Sepet boş");
-    }
-
-    @Test
-    @DisplayName("createFromCart: valid cart ile sipariş oluşturur ve DTO döndürür")
-    void createFromCart_validCart_createsOrder() {
-        // Arrange
-        long customerId = 3L;
-
-        Product product = Product.builder()
-                .id(10L)
-                .price(50.0)
-                .build();
-
-        CartItem ci = CartItem.builder()
-                .product(product)
-                .quantity(4)
-                .build();
-
-        Cart cart = Cart.builder()
-                .customerId(customerId)
-                .status(CartStatus.ACTIVE)
-                .items(List.of(ci))
-                .build();
-
-        when(cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE))
-                .thenReturn(Optional.of(cart));
-
-        LocalDateTime created = LocalDateTime.of(2025, 8, 6, 9, 0);
-        LocalDateTime updated = LocalDateTime.of(2025, 8, 6, 9, 0);
-
-        // orderRepo.save -> ID ve timestamp'leri setli bir Order döndürelim
-        when(orderRepo.save(any(Order.class))).thenAnswer(inv -> {
-            Order in = inv.getArgument(0);
-            return Order.builder()
-                    .id(100L)
-                    .customerId(in.getCustomerId())
-                    .status(in.getStatus())
-                    .createdAt(created)
-                    .updatedAt(updated)
-                    .build();
-        });
-
-        // saveAll aynı listeyi döndürsün
-        when(orderItemRepo.saveAll(anyList()))
-                .thenAnswer(inv -> inv.getArgument(0));
-
-        when(cartRepo.save(any(Cart.class))).thenReturn(cart);
-
-        // Act
-        OrderDto dto = orderService.createFromCart(customerId);
-
-        // Assert
-        assertThat(dto.getId()).isEqualTo(100L);
-        assertThat(dto.getCustomerId()).isEqualTo(customerId);
-        assertThat(dto.getStatus()).isEqualTo(OrderStatus.NEW.name());
-        assertThat(dto.getCreatedAt()).isEqualTo(created);
-        assertThat(dto.getUpdatedAt()).isEqualTo(updated);
-        assertThat(dto.getItems()).hasSize(1);
-        assertThat(dto.getItems().get(0).getProductId()).isEqualTo(10L);
-        assertThat(dto.getItems().get(0).getQuantity()).isEqualTo(4);
-        assertThat(dto.getItems().get(0).getPriceAtPurchase()).isEqualTo(50.0);
-
-        // cart ORDERED oldu mu?
-        verify(cartRepo).save(argThat(c -> c.getStatus() == CartStatus.ORDERED));
-        verify(orderRepo).save(any(Order.class));
-        verify(orderItemRepo).saveAll(anyList());
     }
 
     @Test
@@ -144,15 +77,11 @@ class OrderServiceImplTest {
     void getById_existingOrder_returnsDto() {
         // Arrange
         long orderId = 200L;
-        LocalDateTime created = LocalDateTime.of(2025, 8, 6, 8, 0);
-        LocalDateTime updated = LocalDateTime.of(2025, 8, 6, 8, 0);
 
         Order order = Order.builder()
                 .id(orderId)
                 .customerId(5L)
                 .status(OrderStatus.NEW)
-                .createdAt(created)
-                .updatedAt(updated)
                 .items(List.of())
                 .build();
 
@@ -164,8 +93,6 @@ class OrderServiceImplTest {
         // Assert
         assertThat(dto.getId()).isEqualTo(orderId);
         assertThat(dto.getStatus()).isEqualTo(OrderStatus.NEW.name());
-        assertThat(dto.getCreatedAt()).isEqualTo(created);
-        assertThat(dto.getUpdatedAt()).isEqualTo(updated);
     }
 
     @Test
@@ -184,14 +111,10 @@ class OrderServiceImplTest {
         long customerId = 6L;
         Order o1 = Order.builder().id(1L).customerId(customerId)
                 .status(OrderStatus.NEW)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .items(List.of())
                 .build();
         Order o2 = Order.builder().id(2L).customerId(customerId)
                 .status(OrderStatus.NEW)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .items(List.of())
                 .build();
 
@@ -215,8 +138,6 @@ class OrderServiceImplTest {
                 .id(orderId)
                 .customerId(7L)
                 .status(OrderStatus.NEW)
-                .createdAt(LocalDateTime.of(2025, 8, 6, 7, 0))
-                .updatedAt(LocalDateTime.of(2025, 8, 6, 7, 0))
                 .items(List.of())
                 .build();
 
@@ -224,8 +145,6 @@ class OrderServiceImplTest {
                 .id(orderId)
                 .customerId(7L)
                 .status(OrderStatus.COMPLETED)
-                .createdAt(existing.getCreatedAt())
-                .updatedAt(LocalDateTime.of(2025, 8, 6, 12, 0))
                 .items(List.of())
                 .build();
 
@@ -237,7 +156,6 @@ class OrderServiceImplTest {
 
         // Assert
         assertThat(dto.getStatus()).isEqualTo(OrderStatus.COMPLETED.name());
-        assertThat(dto.getUpdatedAt()).isEqualTo(updated.getUpdatedAt());
 
         ArgumentCaptor<Order> captor = ArgumentCaptor.forClass(Order.class);
         verify(orderRepo).save(captor.capture());
@@ -261,8 +179,6 @@ class OrderServiceImplTest {
                 .id(600L)
                 .customerId(8L)
                 .status(OrderStatus.NEW)
-                .createdAt(LocalDateTime.now())
-                .updatedAt(LocalDateTime.now())
                 .items(List.of())
                 .build();
 

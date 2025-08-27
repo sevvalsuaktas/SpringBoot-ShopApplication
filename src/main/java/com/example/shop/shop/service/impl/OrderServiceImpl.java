@@ -19,8 +19,7 @@ import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -31,8 +30,6 @@ import java.util.stream.Collectors;
 public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepo;
     private final CartRepository cartRepo;
-    private final CartItemRepository cartItemRepo;
-    private final OrderItemRepository orderItemRepo;
 
     @Loggable
     private OrderItemDto toItemDto(OrderItem item) {
@@ -50,8 +47,7 @@ public class OrderServiceImpl implements OrderService {
                 .id(o.getId())
                 .customerId(o.getCustomerId())
                 .status(o.getStatus().name())
-                .createdAt(o.getCreatedAt())
-                .updatedAt(o.getUpdatedAt())
+                .totalAmount(o.getTotalAmount())
                 .items(
                         o.getItems() == null ? List.of() :
                                 o.getItems().stream()
@@ -66,9 +62,10 @@ public class OrderServiceImpl implements OrderService {
                 .build();
     }
 
+/*
     @Loggable
-    @Override
-    @CacheEvict(value = {"orders", "customerOrders"}, allEntries = true) // yeni bir sipariş oluşturulduğunda cache i temizle
+    @CacheEvict(value = {"orders", "customerOrders"}, allEntries = true)
+    @Transactional
     public OrderDto createFromCart(Long customerId) {
         Cart cart = cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE)
                 .orElseThrow(() -> new RuntimeException("Aktif sepet bulunamadı: " + customerId));
@@ -76,34 +73,45 @@ public class OrderServiceImpl implements OrderService {
             throw new RuntimeException("Sepet boş");
         }
 
+        // 1) Toplamı hesapla (BigDecimal)
+        BigDecimal total = cart.getItems().stream()
+                .map(ci -> ci.getProduct().getPrice().multiply(BigDecimal.valueOf(ci.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 2) Order'ı oluştur ve toplamı yaz
         Order order = Order.builder()
                 .customerId(customerId)
                 .status(OrderStatus.NEW)
+                .totalAmount(total)
                 .build();
-        order = orderRepo.save(order);
 
+        // 3) CartItem -> OrderItem
         Order finalOrder = order;
         List<OrderItem> items = cart.getItems().stream()
                 .map(ci -> OrderItem.builder()
                         .order(finalOrder)
                         .product(ci.getProduct())
                         .quantity(ci.getQuantity())
-                        .priceAtPurchase(ci.getProduct().getPrice())
-                        .build()
-                )
+                        .priceAtPurchase(ci.getProduct().getPrice().doubleValue())
+                        .build())
                 .collect(Collectors.toList());
-        orderItemRepo.saveAll(items);
+        order.setItems(items);
 
+        // 4) Order'ı tek seferde kaydet (items için cascade=ALL varsa yeter)
+        order = orderRepo.save(order);
+
+        // 5) Sepeti kapat
         cart.setStatus(CartStatus.ORDERED);
         cartRepo.save(cart);
 
-        order.setItems(items);
+        // 6) DTO
         return toDto(order);
     }
+*/
 
     @Loggable
     @Override
-    @Cacheable(value = "orders", key = "#orderId") // tek bir siparişi cache ler
+    @Cacheable(value = "orders", key = "#orderId")
     public OrderDto getById(Long orderId) {
         return orderRepo.findById(orderId)
                 .map(this::toDto)
@@ -112,7 +120,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Loggable
     @Override
-    @Cacheable(value = "customerOrders", key = "#customerId") // müşteriye ait tüm siparişleri cache ler
+    @Cacheable(value = "customerOrders", key = "#customerId")
     public List<OrderDto> getByCustomer(Long customerId) {
         return orderRepo.findByCustomerId(customerId).stream()
                 .map(this::toDto)
@@ -121,7 +129,7 @@ public class OrderServiceImpl implements OrderService {
 
     @Loggable
     @Override
-    @CacheEvict(value = {"orders", "customerOrders"}, allEntries = true) // sipariş durumu güncellendiğinde cache leri temizle
+    @CacheEvict(value = {"orders", "customerOrders"}, allEntries = true)
     public OrderDto updateStatus(Long orderId, String status) {
         Order order = orderRepo.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Sipariş bulunamadı: " + orderId));
@@ -133,6 +141,53 @@ public class OrderServiceImpl implements OrderService {
         }
         order.setStatus(newStatus);
         order = orderRepo.save(order);
+        return toDto(order);
+    }
+
+    @Loggable
+    @Override
+    @CacheEvict(value = {"orders", "customerOrders"}, allEntries = true)
+    @Transactional
+    public OrderDto checkout(Long customerId) {
+        // 1) Aktif sepeti bul
+        Cart cart = cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE)
+                .orElseThrow(() -> new RuntimeException("Aktif sepet bulunamadı: " + customerId));
+        if (cart.getItems() == null || cart.getItems().isEmpty()) {
+            throw new RuntimeException("Sepet boş");
+        }
+
+        // 2) Toplam tutarı BigDecimal ile hesapla
+        BigDecimal total = cart.getItems().stream()
+                .map(ci -> ci.getProduct().getPrice().multiply(BigDecimal.valueOf(ci.getQuantity())))
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // 3) Order oluştur
+        Order order = Order.builder()
+                .customerId(customerId)
+                .status(OrderStatus.NEW)
+                .totalAmount(total)
+                .build();
+
+        // 4) CartItem -> OrderItem
+        Order finalOrder = order;
+        List<OrderItem> items = cart.getItems().stream()
+                .map(ci -> OrderItem.builder()
+                        .order(finalOrder)
+                        .product(ci.getProduct())
+                        .quantity(ci.getQuantity())
+                        .priceAtPurchase(ci.getProduct().getPrice().doubleValue())
+                        .build())
+                .collect(Collectors.toList());
+        order.setItems(items);
+
+        // 5) Kaydet (Order.items ilişkisinde cascade=ALL varsa bu tek save yeter)
+        order = orderRepo.save(order);
+
+        // 6) Sepeti kapat
+        cart.setStatus(CartStatus.ORDERED);
+        cartRepo.save(cart);
+
+        // 7) DTO döndür
         return toDto(order);
     }
 }

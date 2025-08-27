@@ -1,8 +1,7 @@
 package com.example.shop.shop.dto;
 
 import lombok.*;
-
-import java.time.LocalDateTime;
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -11,11 +10,9 @@ import java.util.List;
 @AllArgsConstructor
 @Builder
 public class OrderDto {
-    private Long id;          // orderId
+    private Long id;  // order id
     private Long customerId;
-    private Double totalAmount;
+    private BigDecimal totalAmount;
     private List<OrderItemDto> items;
-    private LocalDateTime createdAt;
-    private LocalDateTime updatedAt;
     private String status;    // NEW / PROCESSING / COMPLETED / CANCELLED
 }

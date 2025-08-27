@@ -12,7 +12,7 @@ public interface ProductService {
     ProductDto create(ProductDto dto);
     ProductDto update(Long id, ProductDto dto);
     void delete(Long id);
-    List<ProductDto> searchByName(String name);
-    List<ProductDto> filterByCategory(Long categoryId);
+    //List<ProductDto> searchByName(String name);
+    //List<ProductDto> filterByCategory(Long categoryId);
 }
 
