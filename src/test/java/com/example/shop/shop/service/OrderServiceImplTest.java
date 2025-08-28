@@ -2,9 +2,7 @@ package com.example.shop.shop.service;
 
 import com.example.shop.shop.dto.OrderDto;
 import com.example.shop.shop.model.*;
-import com.example.shop.shop.repository.CartItemRepository;
 import com.example.shop.shop.repository.CartRepository;
-import com.example.shop.shop.repository.OrderItemRepository;
 import com.example.shop.shop.repository.OrderRepository;
 import com.example.shop.shop.service.impl.OrderServiceImpl;
 import org.junit.jupiter.api.DisplayName;
@@ -14,10 +12,8 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.List;
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
