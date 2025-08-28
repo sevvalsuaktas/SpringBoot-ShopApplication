@@ -8,7 +8,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.time.LocalDateTime;
 
-@RestControllerAdvice // @RestControllerAdvice tüm controller’ların dışındaki ExceptionHandler’ları devreye alır.
+@RestControllerAdvice
 public class GlobalExceptionHandler {
 
     // 1) RuntimeException ve alt tipleri
@@ -27,7 +27,6 @@ public class GlobalExceptionHandler {
     // 2) @Validated ile giren request body validasyonu hataları
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiError> handleValidation(MethodArgumentNotValidException ex) {
-        // join tüm alan hatalarını tek bir mesajda topla
         String msg = ex.getBindingResult()
                 .getFieldErrors()
                 .stream()
@@ -45,4 +44,3 @@ public class GlobalExceptionHandler {
                 .body(error);
     }
 }
-

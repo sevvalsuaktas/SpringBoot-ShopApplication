@@ -4,6 +4,7 @@ import com.example.shop.shop.dto.PaymentRequestDto;
 import com.example.shop.shop.dto.PaymentResponseDto;
 import com.example.shop.shop.logging.Loggable;
 import com.example.shop.shop.service.PaymentService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -16,7 +17,7 @@ public class PaymentController {
 
     @Loggable
     @PostMapping
-    public ResponseEntity<PaymentResponseDto> pay(@RequestBody PaymentRequestDto request) {
+    public ResponseEntity<PaymentResponseDto> pay(@Valid @RequestBody PaymentRequestDto request) {
         PaymentResponseDto response = paymentService.processPayment(request);
         return ResponseEntity.ok(response);
     }

@@ -7,8 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class RegisterRequest { // kayıt olurken istenen bilgiler
+public class RegisterRequest {
     private String username;
     private String password;
 }
-

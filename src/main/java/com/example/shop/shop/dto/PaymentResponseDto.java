@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PaymentResponseDto { // ödemenin repsonse ının tutulduğu dto
+public class PaymentResponseDto {
     private Long paymentId;
     private String status;
     private String message;

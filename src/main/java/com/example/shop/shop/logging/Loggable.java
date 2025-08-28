@@ -6,4 +6,5 @@ import java.lang.annotation.*;
 @Retention(RetentionPolicy.RUNTIME) // Çalışma zamanında da erişilebilir olsun
 @Documented
 public @interface Loggable {
+
 }

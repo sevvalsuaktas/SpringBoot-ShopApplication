@@ -7,7 +7,7 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class PaymentRequestDto { // ödeme bilgilerinin alındığı dto
+public class PaymentRequestDto {
     private Long orderId;
     private Double amount;
     private String method; // ödeme şekli

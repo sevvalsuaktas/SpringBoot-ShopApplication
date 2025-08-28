@@ -15,15 +15,11 @@ import java.math.BigDecimal;
 public class Product {
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-
     @Column(nullable = false) // sütun boş bırakılamaz
     private String name;
-
     private String description;
-
     @Column(precision = 12, scale = 2, nullable = false)
     private BigDecimal price = BigDecimal.ZERO;
-
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id")
     private Category category;

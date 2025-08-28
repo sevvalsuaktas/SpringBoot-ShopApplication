@@ -8,5 +8,5 @@ import lombok.*;
 @AllArgsConstructor
 @Builder
 public class AuthResponse {
-    private String token; // authentication için oluşturulan token
+    private String token;
 }

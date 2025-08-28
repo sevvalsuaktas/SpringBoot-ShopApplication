@@ -1,6 +1,5 @@
 package com.example.shop.shop.security;
 
-import com.example.shop.shop.service.impl.CustomUserDetailsService;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.*;

@@ -3,9 +3,9 @@ package com.example.shop.shop.controller;
 import com.example.shop.shop.dto.CategoryDto;
 import com.example.shop.shop.logging.Loggable;
 import com.example.shop.shop.service.CategoryService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,13 +24,13 @@ public class CategoryController {
 
     @Loggable
     @GetMapping("/{id}")
-    public ResponseEntity<CategoryDto> getById(@PathVariable Long id) {
+    public ResponseEntity<CategoryDto> getById(@Valid @PathVariable Long id) {
         return ResponseEntity.ok(categoryService.getById(id));
     }
 
     @Loggable
     @PostMapping
-    public ResponseEntity<CategoryDto> create(@Validated @RequestBody CategoryDto dto) {
+    public ResponseEntity<CategoryDto> create(@Valid @RequestBody CategoryDto dto) {
         CategoryDto created = categoryService.create(dto);
         return ResponseEntity
                 .status(201)
@@ -41,13 +41,13 @@ public class CategoryController {
     @PutMapping("/{id}")
     public ResponseEntity<CategoryDto> update(
             @PathVariable Long id,
-            @Validated @RequestBody CategoryDto dto) {
+            @Valid @RequestBody CategoryDto dto) {
         return ResponseEntity.ok(categoryService.update(id, dto));
     }
 
     @Loggable
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@Valid @PathVariable Long id) {
         categoryService.delete(id);
         return ResponseEntity.noContent().build();
     }

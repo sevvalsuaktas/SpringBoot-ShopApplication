@@ -7,10 +7,8 @@ import lombok.*;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class OrderItemDto { // sepetin içindeki ürünlerin bilgilerinin tutulduğu dto
+public class OrderItemDto { // sipariş bilgileri
     private Long id;
     private Long productId;
     private Integer quantity;
-    private Double priceAtPurchase;
 }
-

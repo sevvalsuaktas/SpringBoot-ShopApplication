@@ -1,16 +1,17 @@
 package com.example.shop.shop.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
-import java.io.Serializable;
 
 @Getter
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class CategoryDto implements Serializable {
-    //private static final long serialVersionUID = 1L;
+public class CategoryDto {
     private Long id;
+    @NotBlank
     private String name;
+    @NotBlank
     private String description;
 }

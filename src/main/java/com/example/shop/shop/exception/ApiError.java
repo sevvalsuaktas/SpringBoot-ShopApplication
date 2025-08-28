@@ -11,7 +11,7 @@ import java.time.LocalDateTime;
 @AllArgsConstructor
 @Builder
 public class ApiError {
-    private HttpStatus status; // http durum kodu
-    private String message; // döndürülen mesaj
-    private LocalDateTime timestamp; // hata zamanını tutuyor
+    private HttpStatus status;
+    private String message;
+    private LocalDateTime timestamp;
 }

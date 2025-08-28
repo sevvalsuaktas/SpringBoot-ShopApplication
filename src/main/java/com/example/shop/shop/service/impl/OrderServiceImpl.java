@@ -8,9 +8,7 @@ import com.example.shop.shop.model.CartStatus;
 import com.example.shop.shop.model.Order;
 import com.example.shop.shop.model.OrderItem;
 import com.example.shop.shop.model.OrderStatus;
-import com.example.shop.shop.repository.CartItemRepository;
 import com.example.shop.shop.repository.CartRepository;
-import com.example.shop.shop.repository.OrderItemRepository;
 import com.example.shop.shop.repository.OrderRepository;
 import com.example.shop.shop.service.OrderService;
 import lombok.RequiredArgsConstructor;
@@ -31,15 +29,14 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepo;
     private final CartRepository cartRepo;
 
-    @Loggable
+    /*@Loggable
     private OrderItemDto toItemDto(OrderItem item) {
         return OrderItemDto.builder()
                 .id(item.getId())
                 .productId(item.getProduct().getId())
                 .quantity(item.getQuantity())
-                .priceAtPurchase(item.getPriceAtPurchase())
                 .build();
-    }
+    }*/
 
     @Loggable
     private OrderDto toDto(Order o) {
@@ -55,59 +52,11 @@ public class OrderServiceImpl implements OrderService {
                                                 .id(oi.getId())
                                                 .productId(oi.getProduct().getId())
                                                 .quantity(oi.getQuantity())
-                                                .priceAtPurchase(oi.getPriceAtPurchase())
                                                 .build())
                                         .toList()
                 )
                 .build();
     }
-
-/*
-    @Loggable
-    @CacheEvict(value = {"orders", "customerOrders"}, allEntries = true)
-    @Transactional
-    public OrderDto createFromCart(Long customerId) {
-        Cart cart = cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE)
-                .orElseThrow(() -> new RuntimeException("Aktif sepet bulunamadı: " + customerId));
-        if (cart.getItems().isEmpty()) {
-            throw new RuntimeException("Sepet boş");
-        }
-
-        // 1) Toplamı hesapla (BigDecimal)
-        BigDecimal total = cart.getItems().stream()
-                .map(ci -> ci.getProduct().getPrice().multiply(BigDecimal.valueOf(ci.getQuantity())))
-                .reduce(BigDecimal.ZERO, BigDecimal::add);
-
-        // 2) Order'ı oluştur ve toplamı yaz
-        Order order = Order.builder()
-                .customerId(customerId)
-                .status(OrderStatus.NEW)
-                .totalAmount(total)
-                .build();
-
-        // 3) CartItem -> OrderItem
-        Order finalOrder = order;
-        List<OrderItem> items = cart.getItems().stream()
-                .map(ci -> OrderItem.builder()
-                        .order(finalOrder)
-                        .product(ci.getProduct())
-                        .quantity(ci.getQuantity())
-                        .priceAtPurchase(ci.getProduct().getPrice().doubleValue())
-                        .build())
-                .collect(Collectors.toList());
-        order.setItems(items);
-
-        // 4) Order'ı tek seferde kaydet (items için cascade=ALL varsa yeter)
-        order = orderRepo.save(order);
-
-        // 5) Sepeti kapat
-        cart.setStatus(CartStatus.ORDERED);
-        cartRepo.save(cart);
-
-        // 6) DTO
-        return toDto(order);
-    }
-*/
 
     @Loggable
     @Override
@@ -175,7 +124,6 @@ public class OrderServiceImpl implements OrderService {
                         .order(finalOrder)
                         .product(ci.getProduct())
                         .quantity(ci.getQuantity())
-                        .priceAtPurchase(ci.getProduct().getPrice().doubleValue())
                         .build())
                 .collect(Collectors.toList());
         order.setItems(items);
@@ -191,6 +139,3 @@ public class OrderServiceImpl implements OrderService {
         return toDto(order);
     }
 }
-
-// getById metodu id ye göre tek bir siparişi orders cache ine;
-// getByCustomer metodu musteriIdye göre tüm siparişi customerOrders cache ine kaydeder

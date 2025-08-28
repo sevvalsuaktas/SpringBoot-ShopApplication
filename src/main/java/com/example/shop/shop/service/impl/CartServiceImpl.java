@@ -10,6 +10,7 @@ import com.example.shop.shop.service.CartService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,7 +28,6 @@ public class CartServiceImpl implements CartService {
     private final ProductRepository productRepo;
     private final OrderRepository orderRepo;
 
-    @Loggable
     private CartDto toDto(Cart cart) {
         return CartDto.builder()
                 .id(cart.getId())
@@ -39,7 +39,6 @@ public class CartServiceImpl implements CartService {
                 .build();
     }
 
-    @Loggable
     private CartItemDto toItemDto(CartItem item) {
         return CartItemDto.builder()
                 .id(item.getId())
@@ -50,7 +49,7 @@ public class CartServiceImpl implements CartService {
 
     @Loggable
     @Override
-    @org.springframework.cache.annotation.Cacheable(value = "cart", key = "#customerId")
+    @Cacheable(value = "cart", key = "#customerId")
     public CartDto getActiveCart(Long customerId) {
         Cart cart = cartRepo.findByCustomerIdAndStatus(customerId, CartStatus.ACTIVE)
                 .orElseGet(() -> createEmptyCart(customerId));
@@ -69,16 +68,13 @@ public class CartServiceImpl implements CartService {
     @CacheEvict(value = "cart", key = "#customerId")
     @Override
     public CartItemDto addItem(Long customerId, CartItemDto dto) {
-        // Aktif sepeti getir (yoksa createEmptyCart() ile oluşur)
         CartDto cartDto = getActiveCart(customerId);
         Cart cart = cartRepo.findById(cartDto.getId())
-                .orElseThrow(); // bu zaten varsa
+                .orElseThrow();
 
-        // Ürünü yükle
         Product prod = productRepo.findById(dto.getProductId())
                 .orElseThrow(() -> new RuntimeException("Ürün bulunamadı: " + dto.getProductId()));
 
-        // Aynı üründen mevcutsa miktarı güncelle, yoksa ekle
         CartItem item = cart.getItems().stream()
                 .filter(i -> i.getProduct().getId().equals(prod.getId()))
                 .findFirst()
@@ -121,7 +117,6 @@ public class CartServiceImpl implements CartService {
                 .map(i -> i.getProduct().getPrice().multiply(BigDecimal.valueOf(i.getQuantity())))
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        // Order'ı oluştur
         Order order = Order.builder()
                 .customerId(customerId)
                 .status(OrderStatus.NEW)
@@ -129,11 +124,9 @@ public class CartServiceImpl implements CartService {
                 .build();
         order = orderRepo.save(order);
 
-        // Sepeti ORDERED yap
         cart.setStatus(CartStatus.ORDERED);
         cartRepo.save(cart);
 
-        // Artık OrderDto dön: orderId = order.getId()
         return OrderDto.builder()
                 .id(order.getId())
                 .customerId(customerId)
@@ -142,5 +135,3 @@ public class CartServiceImpl implements CartService {
                 .build();
     }
 }
-
-// addItem, removeItem, checkout çağrıldığında o kullanıcıya ait cache silinir bir sonraki getActiveCart database den çekilir ve cache i günceller

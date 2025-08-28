@@ -21,7 +21,6 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl implements CategoryService {
     private final CategoryRepository repo;
 
-    @Loggable
     private CategoryDto toDto(Category e) {
         return CategoryDto.builder()
                 .id(e.getId())
@@ -30,7 +29,6 @@ public class CategoryServiceImpl implements CategoryService {
                 .build();
     }
 
-    @Loggable
     private Category toEntity(CategoryDto d) {
         return Category.builder()
                 .name(d.getName())
@@ -40,7 +38,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Loggable
     @Override
-    @Cacheable(value = "categories") // tüm kategorileri cache leyen metot
+    @Cacheable(value = "categories")
     public List<CategoryDto> getAll() {
         return repo.findAll().stream()
                 .map(this::toDto)
@@ -49,7 +47,7 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Loggable
     @Override
-    @Cacheable(value = "category", key = "#id") // tek bir kategoriyi cache leyen metot
+    @Cacheable(value = "category", key = "#id")
     public CategoryDto getById(Long id) {
         return repo.findById(id)
                 .map(this::toDto)
@@ -58,15 +56,15 @@ public class CategoryServiceImpl implements CategoryService {
 
     @Loggable
     @Override
-    @CacheEvict(value = {"categories", "category"}, allEntries = true) // yeni kategori eklenince hem liste cache ini hem de tekil kategori cache ini temizliyoruz
-    public CategoryDto create(CategoryDto dto) { // kategori yoksa oluştur
+    @CacheEvict(value = {"categories", "category"}, allEntries = true)
+    public CategoryDto create(CategoryDto dto) {
         Category saved = repo.save(toEntity(dto));
         return toDto(saved);
     }
 
     @Loggable
     @Override
-    @CacheEvict(value = {"categories", "category"}, allEntries = true) // kategori güncellenince aynı cache leri temizliyoruz
+    @CacheEvict(value = {"categories", "category"}, allEntries = true)
     public CategoryDto update(Long id, CategoryDto dto) {
         Category existing = repo.findById(id)
                 .orElseThrow(() -> new RuntimeException("Kategori bulunamadı: " + id));
@@ -82,4 +80,3 @@ public class CategoryServiceImpl implements CategoryService {
         repo.deleteById(id);
     }
 }
-

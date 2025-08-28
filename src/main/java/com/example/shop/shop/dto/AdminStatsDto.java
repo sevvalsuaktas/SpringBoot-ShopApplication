@@ -13,6 +13,3 @@ public class AdminStatsDto {
     private long orderCount;
     private double totalRevenue;
 }
-
-// DTO lar API katmanıyla database arası bir iletişim sağlıyor
-// istemciden gelen veya istemciye giden JSON gövdesinin şeklli aslında

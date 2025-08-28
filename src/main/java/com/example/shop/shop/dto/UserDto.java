@@ -8,7 +8,7 @@ import java.util.Set;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class UserDto { // Controller’dan client’a giden kullanıcı verisi
+public class UserDto {
     private Long id;
     private String username;
     private Set<String> roles;

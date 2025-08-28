@@ -3,6 +3,7 @@ package com.example.shop.shop.controller;
 import com.example.shop.shop.dto.OrderDto;
 import com.example.shop.shop.logging.Loggable;
 import com.example.shop.shop.service.OrderService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,14 +18,14 @@ public class OrderController {
 
     @Loggable
     @GetMapping("/{orderId}")
-    public ResponseEntity<OrderDto> getOrder(@PathVariable Long orderId) {
+    public ResponseEntity<OrderDto> getOrder(@Valid @PathVariable Long orderId) {
         OrderDto dto = orderService.getById(orderId);
         return ResponseEntity.ok(dto);
     }
 
     @Loggable
     @GetMapping("/customer/{customerId}")
-    public ResponseEntity<List<OrderDto>> getByCustomer(@PathVariable Long customerId) {
+    public ResponseEntity<List<OrderDto>> getByCustomer(@Valid @PathVariable Long customerId) {
         List<OrderDto> orders = orderService.getByCustomer(customerId);
         return ResponseEntity.ok(orders);
     }

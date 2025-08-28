@@ -3,10 +3,10 @@ package com.example.shop.shop.controller;
 import com.example.shop.shop.dto.ProductDto;
 import com.example.shop.shop.logging.Loggable;
 import com.example.shop.shop.service.ProductService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.ResponseEntity;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public class ProductController {
 
     @Loggable
     @GetMapping("/{id}")
-    public ResponseEntity<ProductDto> getById(@PathVariable Long id) {
+    public ResponseEntity<ProductDto> getById(@Valid @PathVariable Long id) {
         log.info("GET /api/v1/products/{} çağrıldı", id);
         ProductDto dto = productService.getById(id);
         log.debug("ÜRÜN DÖNÜYOR: {}", dto);
@@ -36,7 +36,7 @@ public class ProductController {
 
     @Loggable
     @PostMapping
-    public ResponseEntity<ProductDto> create(@Validated @RequestBody ProductDto dto) {
+    public ResponseEntity<ProductDto> create(@Valid @RequestBody ProductDto dto) {
         ProductDto created = productService.create(dto);
         return ResponseEntity
                 .status(201)
@@ -47,13 +47,13 @@ public class ProductController {
     @PutMapping("/{id}")
     public ResponseEntity<ProductDto> update(
             @PathVariable Long id,
-            @Validated @RequestBody ProductDto dto) {
+            @Valid @RequestBody ProductDto dto) {
         return ResponseEntity.ok(productService.update(id, dto));
     }
 
     @Loggable
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable Long id) {
+    public ResponseEntity<Void> delete(@Valid @PathVariable Long id) {
         productService.delete(id);
         return ResponseEntity.noContent().build();
     }

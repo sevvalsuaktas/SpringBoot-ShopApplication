@@ -22,7 +22,7 @@ public class LoggingAspect {
 
         try {
             Object result = pjp.proceed();
-            // Metot sonrası log (dönen değeri de yazdırmak istersen)
+            // Metot sonrası log
             log.info("<< Exiting  {}.{} – returned={}",
                     className, methodName, result);
             return result;
@@ -42,5 +42,3 @@ public class LoggingAspect {
         return sb.substring(0, sb.length() - 2);
     }
 }
-
-

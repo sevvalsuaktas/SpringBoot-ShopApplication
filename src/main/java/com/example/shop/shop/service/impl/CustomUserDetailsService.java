@@ -10,8 +10,8 @@ import org.springframework.stereotype.Service;
 @Slf4j
 @Service
 public class CustomUserDetailsService implements UserDetailsService {
-
     private final UserRepository repo;
+
     public CustomUserDetailsService(UserRepository repo) {
         this.repo = repo;
     }
@@ -29,4 +29,3 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .build();
     }
 }
-

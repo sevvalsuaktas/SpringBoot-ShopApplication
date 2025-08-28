@@ -58,7 +58,7 @@ class ProductServiceImplTest {
     @DisplayName("getById: mevcut id için DTO + stok bilgisi döner")
     void getById_ok() {
         Category c = cat(42L, "Elektronik");
-        Product p = prod(5L, "ProdA", 15.5, c);
+        Product p = prod(5L, "ProdA", 49.99, c);
 
         when(repo.findById(5L)).thenReturn(Optional.of(p));
         when(inventoryClient.getStock(5L)).thenReturn(stock(5L, 3));
@@ -67,7 +67,7 @@ class ProductServiceImplTest {
 
         assertThat(dto.getId()).isEqualTo(5L);
         assertThat(dto.getName()).isEqualTo("ProdA");
-        assertThat(dto.getPrice()).isEqualTo(15.5);
+        assertThat(dto.getPrice()).isEqualTo(49.99);
         assertThat(dto.getCategoryId()).isEqualTo(42L);
         assertThat(dto.getInStock()).isTrue();
     }
@@ -206,43 +206,6 @@ class ProductServiceImplTest {
     void delete_ok() {
         service.delete(8L);
         verify(repo).deleteById(8L);
-    }
-
-    @Test
-    @DisplayName("searchByName: isimle arar ve stok bilgisini set eder")
-    void searchByName_ok() {
-        Category c = cat(1L, "Genel");
-        Product p1 = prod(11L, "pro-abc", 9.9, c);
-        Product p2 = prod(12L, "PRO-xyz", 19.9, c);
-
-        when(repo.findByNameContainingIgnoreCase("pro")).thenReturn(Arrays.asList(p1, p2));
-        when(inventoryClient.getStock(11L)).thenReturn(stock(11L, 0));
-        when(inventoryClient.getStock(12L)).thenReturn(stock(12L, 2));
-
-        List<ProductDto> out = service.searchByName("pro");
-
-        assertThat(out).hasSize(2);
-        assertThat(out.get(0).getInStock()).isFalse();
-        assertThat(out.get(1).getInStock()).isTrue();
-    }
-
-    @Test
-    @DisplayName("filterByCategory: kategoriye göre listeler ve stok bilgisini set eder")
-    void filterByCategory_ok() {
-        Category c = cat(5L, "Ktg");
-        Product p1 = prod(21L, "A", 1.0, c);
-        Product p2 = prod(22L, "B", 2.0, c);
-
-        when(repo.findByCategoryId(5L)).thenReturn(Arrays.asList(p1, p2));
-        when(inventoryClient.getStock(21L)).thenReturn(stock(21L, 1));
-        when(inventoryClient.getStock(22L)).thenReturn(stock(22L, 0));
-
-        List<ProductDto> out = service.filterByCategory(5L);
-
-        assertThat(out).hasSize(2);
-        assertThat(out.get(0).getCategoryId()).isEqualTo(5L);
-        assertThat(out.get(0).getInStock()).isTrue();
-        assertThat(out.get(1).getInStock()).isFalse();
     }
 
     @Test

@@ -15,27 +15,22 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class AdminServiceImpl implements AdminService {
-    private final UserRepository userRepo; // kullanıcı tablosu üzerine CRUD işlemleri ve sayma işlemleri yapıcak UserRepository
-    private final ProductRepository productRepo; // ürün tablosu için
-    private final OrderRepository orderRepo; // sipariş tablosu için
+    private final UserRepository userRepo;
+    private final ProductRepository productRepo;
+    private final OrderRepository orderRepo;
 
     @Loggable
     @Override
     @Transactional(readOnly = true)
-    public AdminStatsDto getStats() { // istatistiklere erişebilmek için bir metot (admin-only)
+    public AdminStatsDto getStats() {
         long userCount = userRepo.count();
         long productCount = productRepo.count();
         long orderCount = orderRepo.count();
-        double totalRevenue = orderRepo.findAllWithItems().stream()
-                .flatMap(o -> o.getItems().stream())
-                .mapToDouble(i -> i.getPriceAtPurchase() * i.getQuantity())
-                .sum();
 
-        return AdminStatsDto.builder() // bu verileri adminstatsdto içinde paketleip döner
+        return AdminStatsDto.builder()
                 .userCount(userCount)
                 .productCount(productCount)
                 .orderCount(orderCount)
-                .totalRevenue(totalRevenue)
                 .build();
     }
 }

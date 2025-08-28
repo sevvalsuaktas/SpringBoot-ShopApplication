@@ -74,5 +74,3 @@ public class SecurityConfig {
         return config.getAuthenticationManager();
     }
 }
-
-//SecurityConfig, Spring Security’yi JWT tabanlı, stateless bir REST API için yapılandırıyor.

@@ -15,6 +15,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 
 @Slf4j
 @Service
@@ -32,10 +33,8 @@ public class PaymentServiceImpl implements PaymentService {
         Order order = orderRepo.findById(request.getOrderId())
                 .orElseThrow(() -> new RuntimeException("Sipariş bulunamadı: " + request.getOrderId()));
 
-        // 1) Ödenecek gerçek tutarı siparişten al
         BigDecimal due = order.getTotalAmount();
         if (due == null) {
-            // Emniyet: gerekirse kalemlerden hesapla
             due = order.getItems().stream()
                     .map(oi -> BigDecimal.valueOf(oi.getPriceAtPurchase())
                             .multiply(BigDecimal.valueOf(oi.getQuantity())))
@@ -44,7 +43,6 @@ public class PaymentServiceImpl implements PaymentService {
             orderRepo.save(order);
         }
 
-        // 2) (Opsiyonel) İstemciden gelen amount varsa doğrula
         if (request.getAmount() != null) {
             BigDecimal sent = BigDecimal.valueOf(request.getAmount());
             if (sent.compareTo(due) != 0) {
@@ -52,16 +50,14 @@ public class PaymentServiceImpl implements PaymentService {
             }
         }
 
-        // 3) Ödemeyi kaydet — amount'u sipariş toplamından yaz
         Payment payment = Payment.builder()
                 .orderId(request.getOrderId())
-                .amount(due.doubleValue())
+                .amount(due.setScale(2, RoundingMode.HALF_UP))
                 .method(request.getMethod())
                 .status("SUCCESS")
                 .build();
         payment = paymentRepo.save(payment);
 
-        // 4) Sipariş durumunu güncelle
         order.setStatus(OrderStatus.COMPLETED);
         orderRepo.save(order);
 
@@ -76,7 +72,6 @@ public class PaymentServiceImpl implements PaymentService {
         log.warn("Ödeme servisi çağrısında hata: {} – orderId={} için fallback dönülüyor",
                 ex.toString(), request.getOrderId());
 
-        // Hata durumunda uygun şekilde geri dönüş yap
         return PaymentResponseDto.builder()
                 .paymentId(null)
                 .status("FAILED")
