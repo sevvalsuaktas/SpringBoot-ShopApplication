@@ -24,13 +24,10 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class PaymentServiceImplTest {
-
     @Mock
     private PaymentRepository paymentRepo;
-
     @Mock
     private OrderRepository orderRepo;
-
     @InjectMocks
     private PaymentServiceImpl paymentService;
 

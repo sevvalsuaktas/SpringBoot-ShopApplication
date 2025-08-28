@@ -10,18 +10,14 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.*;
 import org.mockito.junit.jupiter.MockitoExtension;
-
 import java.util.Optional;
-
 import static org.assertj.core.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CartServiceImplTest {
-
     @Mock
     private CartRepository cartRepo;
-
     @InjectMocks
     private CartServiceImpl cartService;
 
@@ -67,4 +63,3 @@ class CartServiceImplTest {
         verify(cartRepo).save(any(Cart.class));
     }
 }
-

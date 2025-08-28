@@ -16,7 +16,6 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
@@ -25,17 +24,12 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 class PaymentControllerTest {
-
     private MockMvc mockMvc;
-
     @Mock
     private PaymentService paymentService;
-
     @InjectMocks
     private PaymentController paymentController;
-
     private ObjectMapper objectMapper;
-
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders
@@ -97,4 +91,3 @@ class PaymentControllerTest {
                 .andExpect(jsonPath("$.message").value("Payment failed"));
     }
 }
-

@@ -21,13 +21,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 class OrderControllerTest {
 
     private MockMvc mockMvc;
-
     @Mock
     private OrderService orderService;
-
     @InjectMocks
     private OrderController orderController;
-
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders

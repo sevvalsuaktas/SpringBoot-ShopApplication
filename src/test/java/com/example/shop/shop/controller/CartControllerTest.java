@@ -17,21 +17,17 @@ import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
-@ExtendWith(MockitoExtension.class) // otomatik olarak @mock alanları oluşturur ve @injectmock alanlarını enjekte eder
+@ExtendWith(MockitoExtension.class)
 class CartControllerTest {
-
-    private MockMvc mockMvc; // controller ı http çağrılarıyla test etmek için spring in test aracı
-
+    private MockMvc mockMvc;
     @Mock
     private CartService cartService;
-
     @InjectMocks
     private CartController cartController;
-
     @BeforeEach
     void setUp() {
         mockMvc = MockMvcBuilders
-                .standaloneSetup(cartController) // sadece bu controller için hafif bir mvc ortamı kurar
+                .standaloneSetup(cartController)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
     }
@@ -45,7 +41,7 @@ class CartControllerTest {
                 .customerId(12L)
                 .status("ACTIVE")
                 .build();
-        when(cartService.getActiveCart(12L)).thenReturn(sample); // getActiveCart(12L) çağrılırsa sample dönecek
+        when(cartService.getActiveCart(12L)).thenReturn(sample);
 
         // Act & Assert(eylem ve doğrulama)
         mockMvc.perform(get("/api/v1/cart/12")) // sanki HTTP GET çağrısı yapıyormuşuz gibi controller ı çağırıyoruz
@@ -62,5 +58,3 @@ class CartControllerTest {
                 .andExpect(status().isNotFound());
     }
 }
-
-// unit test in amacı: controller ı veritabanı, ağ, gerçek servisler gibi dış bağımlılıklardan bağımsız olarak test etmek

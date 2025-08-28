@@ -27,17 +27,14 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class ProductServiceImplTest {
-
     @Mock
     ProductRepository repo;
-
     @Mock
     CategoryRepository categoryRepo;
-
     @Mock
     InventoryClient inventoryClient;
-
-    @InjectMocks ProductServiceImpl service;
+    @InjectMocks
+    ProductServiceImpl service;
 
     private static Category cat(long id, String name) {
         return Category.builder().id(id).name(name).build();

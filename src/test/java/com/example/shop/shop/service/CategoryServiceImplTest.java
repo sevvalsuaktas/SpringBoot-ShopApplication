@@ -22,10 +22,8 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class CategoryServiceImplTest {
-
     @Mock
     private CategoryRepository categoryRepository;
-
     @InjectMocks
     private CategoryServiceImpl categoryService;
 

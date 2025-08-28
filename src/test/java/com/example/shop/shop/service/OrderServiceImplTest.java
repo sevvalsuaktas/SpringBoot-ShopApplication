@@ -24,19 +24,10 @@ import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceImplTest {
-
     @Mock
     private OrderRepository orderRepo;
-
     @Mock
     private CartRepository cartRepo;
-
-    @Mock
-    private CartItemRepository cartItemRepo; // Serviste field var; testte de mock’layalım
-
-    @Mock
-    private OrderItemRepository orderItemRepo;
-
     @InjectMocks
     private OrderServiceImpl orderService;
 
@@ -190,6 +181,3 @@ class OrderServiceImplTest {
                 .hasMessage("Geçersiz status: INVALID");
     }
 }
-
-
-

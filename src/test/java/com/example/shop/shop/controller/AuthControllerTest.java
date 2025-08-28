@@ -33,26 +33,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @ExtendWith(MockitoExtension.class)
 class AuthControllerTest {
-
     private MockMvc mockMvc;
-
     private ObjectMapper objectMapper;
-
     @Mock
     private AuthenticationManager authManager;
-
     @Mock
     private JwtTokenProvider tokenProvider;
-
     @Mock
     private UserRepository userRepo;
-
     @Mock
     private PasswordEncoder encoder;
-
     @InjectMocks
     private AuthController authController;
-
     @BeforeEach
     void setUp() {
         objectMapper = new ObjectMapper();
@@ -63,7 +55,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("POST /api/v1/auth/register → 200 OK ve token döner")
-    void register_success() throws Exception { // kayıt olma aşamasında success durumu
+    void register_success() throws Exception {
         // Arrange
         RegisterRequest req = RegisterRequest.builder()
                 .username("ssa")
@@ -83,7 +75,6 @@ class AuthControllerTest {
                 .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.token").value("jwt-123"));
 
-        // Kaydedilen kullanıcı doğru mu kontrolü
         ArgumentCaptor<User> userCaptor = ArgumentCaptor.forClass(User.class);
         verify(userRepo).save(userCaptor.capture());
         User saved = userCaptor.getValue();
@@ -91,13 +82,12 @@ class AuthControllerTest {
         assertThat(saved.getPassword()).isEqualTo("ENC");
         assertThat(saved.getRoles()).containsExactly(Role.ROLE_USER);
 
-        // Token oluşturma doğru parametrelerle mi çağırıldı kontrolü
         verify(tokenProvider).generateToken(eq("ssa"), eq(Set.of(Role.ROLE_USER)));
     }
 
     @Test
     @DisplayName("POST /api/v1/auth/register → 400 Username taken (plain text body)")
-    void register_usernameTaken() throws Exception { // register aşamasında kullanıcı adı zaten varsa
+    void register_usernameTaken() throws Exception {
         // Arrange
         when(userRepo.findByUsername("su")).thenReturn(Optional.of(
                 User.builder().username("su").build()
@@ -121,7 +111,7 @@ class AuthControllerTest {
 
     @Test
     @DisplayName("POST /api/v1/auth/login → 200 OK ve token döner")
-    void login_success() throws Exception { // var olan kullanıcı giriş yapması durumunda success
+    void login_success() throws Exception {
         // Arrange
         LoginRequest req = LoginRequest.builder()
                 .username("ssa")

@@ -12,10 +12,8 @@ import org.springframework.http.MediaType;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.bean.override.mockito.MockitoBean;
 import org.springframework.test.web.servlet.MockMvc;
-
 import java.util.Arrays;
 import java.util.List;
-
 import static org.mockito.ArgumentMatchers.*;
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
@@ -23,13 +21,10 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(ProductController.class)
 @ContextConfiguration(classes = { ProductController.class, GlobalExceptionHandler.class })
-// Spring Security’nin tüm filtrelerini test sırasında devre dışı bırakıyoruz:
 @AutoConfigureMockMvc(addFilters = false)
 class ProductControllerTest {
-
     @Autowired
     private MockMvc mockMvc;
-
     @MockitoBean
     private ProductService productService;
 
