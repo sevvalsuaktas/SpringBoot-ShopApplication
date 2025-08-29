@@ -22,6 +22,7 @@ public class Cart {
             cascade = CascadeType.ALL,
             orphanRemoval = true
     )
+    @Builder.Default
     private List<CartItem> items = new ArrayList<>();
     @Enumerated(EnumType.STRING)
     private CartStatus status;

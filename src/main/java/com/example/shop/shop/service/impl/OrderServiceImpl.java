@@ -29,15 +29,6 @@ public class OrderServiceImpl implements OrderService {
     private final OrderRepository orderRepo;
     private final CartRepository cartRepo;
 
-    /*@Loggable
-    private OrderItemDto toItemDto(OrderItem item) {
-        return OrderItemDto.builder()
-                .id(item.getId())
-                .productId(item.getProduct().getId())
-                .quantity(item.getQuantity())
-                .build();
-    }*/
-
     @Loggable
     private OrderDto toDto(Order o) {
         return OrderDto.builder()

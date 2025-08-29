@@ -47,7 +47,6 @@ class CartServiceImplTest {
         // Arrange
         when(cartRepo.findByCustomerIdAndStatus(8L, CartStatus.ACTIVE))
                 .thenReturn(Optional.empty());
-        // Kaydetme çağrısında id ekleniyor
         when(cartRepo.save(any(Cart.class)))
                 .thenAnswer(inv -> {
                     Cart c = inv.getArgument(0);

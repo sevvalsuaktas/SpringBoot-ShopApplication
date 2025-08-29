@@ -40,7 +40,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: shoppass
       SPRING_REDIS_HOST: redis
       SPRING_REDIS_PORT: 6379
-      INVENTORY_SERVICE_URL: http://app:8080
+      INVENTORY_SERVICE_URL: INVENTORY_BASE_URL=http://inventory:8080
     depends_on:
       db:
         condition: service_healthy

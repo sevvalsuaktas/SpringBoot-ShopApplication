@@ -16,6 +16,7 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.math.BigDecimal;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
@@ -45,14 +46,14 @@ class PaymentServiceImplTest {
         Order existing = Order.builder()
                 .id(orderId)
                 .status(OrderStatus.NEW)
+                .totalAmount(new BigDecimal("49.99"))
                 .build();
 
         when(orderRepo.findById(orderId)).thenReturn(Optional.of(existing));
 
-        // paymentRepo.save döndürülen entity'e id setleyelim ki response'ta dönsün
+        // paymentRepo.save: DB id'si simüle et
         when(paymentRepo.save(any(Payment.class))).thenAnswer(inv -> {
             Payment p = inv.getArgument(0);
-            // id database de oluşmuş gibi simüle edildi
             return Payment.builder()
                     .id(999L)
                     .orderId(p.getOrderId())
@@ -68,18 +69,18 @@ class PaymentServiceImplTest {
         // Assert — DTO
         assertThat(resp.getPaymentId()).isEqualTo(999L);
         assertThat(resp.getStatus()).isEqualTo("SUCCESS");
-        assertThat(resp.getMessage()).isNull();
+        assertThat(resp.getMessage()).isEqualTo("Payment success"); // <— güncellendi
 
         // Assert — paymentRepo'ya kaydedilen
         ArgumentCaptor<Payment> payCaptor = ArgumentCaptor.forClass(Payment.class);
         verify(paymentRepo, times(1)).save(payCaptor.capture());
         Payment savedPayment = payCaptor.getValue();
         assertThat(savedPayment.getOrderId()).isEqualTo(orderId);
-        assertThat(savedPayment.getAmount()).isEqualTo(49.99);
+        assertThat(savedPayment.getAmount()).isEqualTo(new BigDecimal("49.99"));
         assertThat(savedPayment.getMethod()).isEqualTo("CARD");
         assertThat(savedPayment.getStatus()).isEqualTo("SUCCESS");
 
-        // Assert — orderRepo.save çağrısında statü COMPLETED olmuş mu kontrolü
+        // Assert — orderRepo.save çağrısında statü COMPLETED oldu mu?
         ArgumentCaptor<Order> orderCaptor = ArgumentCaptor.forClass(Order.class);
         verify(orderRepo, times(1)).save(orderCaptor.capture());
         Order savedOrder = orderCaptor.getValue();

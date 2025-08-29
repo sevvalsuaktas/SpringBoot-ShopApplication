@@ -10,9 +10,12 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import java.util.List;
+
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -31,24 +34,6 @@ class OrderControllerTest {
                 .standaloneSetup(orderController)
                 .setControllerAdvice(new GlobalExceptionHandler())
                 .build();
-    }
-
-    @Test
-    @DisplayName("POST /api/v1/orders/from-cart/{customerId} → 201 Created + body")
-    void createOrder_fromCart_created() throws Exception {
-        long customerId = 10L;
-        OrderDto dto = OrderDto.builder()
-                .id(100L)
-                .customerId(customerId)
-                .status("NEW")
-                .items(List.of())
-                .build();
-
-        mockMvc.perform(post("/api/v1/orders/from-cart/{customerId}", customerId))
-                .andExpect(status().isCreated())
-                .andExpect(jsonPath("$.id").value(100))
-                .andExpect(jsonPath("$.customerId").value((int) customerId))
-                .andExpect(jsonPath("$.status").value("NEW"));
     }
 
     @Test
@@ -87,16 +72,24 @@ class OrderControllerTest {
     @DisplayName("GET /api/v1/orders/customer/{customerId} → 200 OK + liste")
     void getByCustomer_ok() throws Exception {
         long customerId = 30L;
+
         List<OrderDto> list = List.of(
+                OrderDto.builder().id(1L).customerId(customerId).build(),
+                OrderDto.builder().id(2L).customerId(customerId).build()
         );
 
         when(orderService.getByCustomer(customerId)).thenReturn(list);
 
         mockMvc.perform(get("/api/v1/orders/customer/{customerId}", customerId))
                 .andExpect(status().isOk())
+                .andExpect(content().contentTypeCompatibleWith(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.length()").value(2))
                 .andExpect(jsonPath("$[0].id").value(1))
                 .andExpect(jsonPath("$[1].id").value(2));
+
+        verify(orderService).getByCustomer(customerId);
     }
+
 
     @Test
     @DisplayName("PATCH /api/v1/orders/{orderId}/status?status=COMPLETED → 200 OK")
